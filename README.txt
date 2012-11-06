@@ -1,21 +1,21 @@
 This is the White Star Balloon Comm Controller Software for Arduino. 
 
-REQUIRES the library WSWire: http://github.com/whitestarballoon/WSWireLib
+REQUIRES the custom library WSWire: http://github.com/whitestarballoon/WSWireLib
 Do not use with the stock Arduino 1.0 Wire Library, or it will freeze in some I2C situations.
 
-Current hardware:
-Arduino Mega
+Current hardware supported:
+Arduino MEGA 2560
 
-Modem that will be connected as a shield will be the Iridium 9602.
+Iridium 9602 modem should be connected as follows:
 
-Arduino Mega Pin connections:
+Arduino Pin / Connection
 0  
 1  
-2  SAT Ring Indicator (RI)
-3  SAT Network Available
-4  SAT Power Enable (On/Off)
-5  SAT 3.3V Supply Enable
-6  SAT DSR (rises on boot complete)
+2  IRIDIUM Ring Indicator (RI)
+3  IRIDIUM Network Available
+4  IRIDIUM Power Enable (On/Off)
+5  IRIDIUM 3.3V Supply Enable
+6  IRIDIUM DSR (rises on boot complete)
 7  
 
 8  
@@ -25,24 +25,11 @@ Arduino Mega Pin connections:
 12 
 13 
 
-14 UART3 ET2 RX-OUT
-15 UART3 ET2 TX-IN
-16 UART2 ET1 RX-OUT - Cutdown
-17 UART2 ET1 TX-IN - Cutdown
-18 @UART1 SAT Serial TXO
-19 @UART1 SAT Serial RXI
-20 @WSBCOMMSHIELD I2C SCL
-21 @WSBCOMMSHIELD I2C SDA
-
-A00 WSBCOMMSHIELD 
-A01 WSBCOMMSHIELD 
-A02 - 
-A03 -
-A04 WSBCOMMSHIELD I2C SDA
-A05 WSBCOMMSHIELD I2C SCL
-A06 -
-A07 -
-A08 -
-A09 -
-A10 WSBCOMMSHIELD I2C SCL
-A11 WSBCOMMSHIELD I2C SDA
+14  
+15  
+16 
+17 
+18 IRIDIUM Serial TXO
+19 IRIDIUM Serial RXI
+20 I2C SCL - To EEPROM and User Microcontroller
+21 I2C SDA - To EEPROM and User Microcontroller
