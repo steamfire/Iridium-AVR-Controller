@@ -1,3 +1,12 @@
+/*
+Hardware required: 
+	Arduino MEGA 2560
+	I2C EEPROM
+	Iridium 9602 Modem
+	
+User interface: Debug output available on Serial/USB from Mega board, 115000 Bps
+*/
+
 #define __WHITESTARBALLOON__
 #include <avr/wdt.h>
 #include "CommCtrlrConfig.h"
