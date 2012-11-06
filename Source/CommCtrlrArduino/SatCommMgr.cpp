@@ -35,10 +35,10 @@ void SatCommMgr::satCommInit(I2CCommMgr * i2cCommMgr)
         _i2cCommMgr = i2cCommMgr;
         wdtrst();
         DebugMsg::msg_P("SAT",'I',PSTR("SatModem Init Completed."));
-#if 0
+#if 1
   {
     
-    snprintf((char *)sbuf, 6, "hello");
+    snprintf((char *)sbuf, 6, "hello upu");
     _satModem.loadMOMessage((unsigned char *)sbuf,5);
     Serial.print(F("Hello Sent!\n"));
   }
