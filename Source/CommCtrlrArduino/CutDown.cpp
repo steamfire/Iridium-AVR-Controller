@@ -45,10 +45,11 @@ void CutDown::initCutdown(HardwareSerial * sPort)
     }
   }
   if (respondFlag == false) {
-    DebugMsg::msg_P("CD",'E',PSTR("CUTDOWN DEAD."));
-  }
+    DebugMsg::msg_P("CD",'E',PSTR("CUTDOWN NOT RESPONDING."));
+  } else {
   delay(500);
   CmdSet(250);  // Immediately set the cutdown to maximum time to give time to work
+  }
 }
 
 
