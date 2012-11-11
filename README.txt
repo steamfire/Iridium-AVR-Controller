@@ -9,8 +9,8 @@ Arduino MEGA 2560
 Iridium 9602 modem should be connected as follows:
 
 Arduino Pin / Connection
-0  
-1  
+0  Serial ASCII Status Monitor Terminal RX Input  (115200 Baud 8N1)
+1  Serial ASCII Status Monitor Terminal TX Output (115200 Baud 8N1)
 2  IRIDIUM Ring Indicator (RI)
 3  IRIDIUM Network Available
 4  IRIDIUM Power Enable (On/Off)
