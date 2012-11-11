@@ -3,9 +3,8 @@
 
 
 #define __WHITESTARBALLOON__
-#define printExpectings
-#define printVerifiedModemSerialMessages
-
+/* define to enable debug messages */
+#define _WS_DEBUG 1
 
 #if (ARDUINO >= 100)
 #include <Arduino.h>
@@ -26,6 +25,8 @@ Global Configuration Information
 #define IRIDIUM_SERIAL_PORT Serial1
 #define CUTDOWN_SERIAL_PORT Serial2
 
+
+
 /*******************************
  *    Pin declarations         *
  *******************************/
@@ -38,6 +39,15 @@ Global Configuration Information
 const int sda = 18;                                // I2C SDA
 const int scl = 19;                                // I2C SCL
 
+/*******************************
+ *    Connected Iridium Modem Pins  *
+ *	   Set each to TRUE if it's connected, FALSE if not  *
+ *******************************/
+ 
+ #define pinRIisConnected true						//not yet paid attention to
+ #define pinNAisConnected true   					//not yet paid attention to
+ #define pinDSRisConnected false 					//Rockblock does not provide this pin, set it to FALSE if using RockBlock
+ #define pinModemPowerSwitchisConnected true  		//not yet paid attention to
 
 /*******************************
  *    Address declarations     *
