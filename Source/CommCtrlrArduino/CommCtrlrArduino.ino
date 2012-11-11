@@ -28,13 +28,7 @@ volatile int SatelliteNetworkAvailable = 0;
  // (ms) Force initiate SBD session after period of no activity, in minutes, the first number in parenthesis
  // Defaults to 15 minutes
 volatile unsigned long satForceSBDSessionInterval = (15UL * 60UL * 1000UL);
-
-// It turns out the WhiteStar Bus to ArduinoMega board connects I2C to the
-// old arduino pins as well as the new ArduinoMega i2c pins which means you
-// you can not have anything on A4 and A5 or it will conflict. The LCD currently
-// uses those pins as well so the LCD has been disabled. The LCD should be moved to the 
-// ground support board later.
-
+	
 // Declare an instance of the class
 Iridium9602 iridium = Iridium9602(IRIDIUM_SERIAL_PORT);
 SatCommMgr satCommMgr = SatCommMgr( iridium ); 
@@ -127,6 +121,8 @@ wdtrst();
 
 }
 int firstTime = true; //Watchdog Var
+
+
 void loop()
 {
   if (firstTime){
