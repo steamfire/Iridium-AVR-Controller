@@ -8,12 +8,11 @@
 #include <avr/pgmspace.h>
 #include <string.h>
 
+
 #include "CommCtrlrConfig.h"
 #include "Iridium9602.h"
 #include "DebugMsg.h"
 
-/* define to enable debug messages */
-//#define _WS_DEBUG 1
 
 /* from CommCtrlArduino.ino */
 void initIridiumNetworkInterrupt();
@@ -37,53 +36,76 @@ void Iridium9602::initModem()
         _MTMsgLen = 0;
         _lastSessionTime = 0;
         _lastSessionResult = 1;
-
-        Serial.println(F("Iridium9602 settling while off..."));
-        //Wait for modem to be fully powered down - this is important delay!
-        { //Delay without the delay command
-                unsigned long millistart = millis();
-                while ( millis() < millistart + 5000 ) {
-                }
-        }
-
-        //delay(2500);
-        if (HIGH == digitalRead(pinDSR)) {
-                DebugMsg::msg_P("SAT",'D',PSTR("DSR HIGH."));
-        } else {
-                DebugMsg::msg_P("SAT",'D',PSTR("DSR LOW"));
-        }
-        //Turn modem on
-        Serial.println(F("Turning Sat Modem On... "));
-        Serial.flush();
-        digitalWrite(pinModemPowerSwitch, HIGH);
-        //Check for DSR line going high to indicate boot has finished
-        { 
-                unsigned long millistart = millis();
-                while ( (millis() < (millistart + 60000)) ) //Delay without the delay command
-                {
-                        if (HIGH == digitalRead(pinDSR)) 
-                        {	
-                                break; 
-                        }
-                }
-        }
-        if (HIGH == digitalRead(pinDSR)) 
-        {
-                DebugMsg::msg_P("SAT",'D',PSTR("Modem alive."));
-                //Setup NetworkAvailable Pinchange interrupt 
-                initIridiumNetworkInterrupt();
-
-        } else {
-                DebugMsg::msg_P("SAT",'E',PSTR("!! Modem did not complete boot sequence. !!"));
-        }
-
-        while(!sendCommandandExpectPrefix(F("AT"), F("OK"), 500)) {
-#if _WS_DEBUG
-                DebugMsg::msg_P("SAT", 'I', PSTR(" Modem is not talking to me yet"));
-#endif
-        }
-        DebugMsg::msg_P("SAT", 'I', PSTR(" Modem talked to me"));
-
+        modemAlive = false;
+        
+        while(false == modemAlive) {  // stay in this loop until the modem wakes up.  make more elegant later FIXME
+			//Turn Iridium 9602 modem off
+			digitalWrite(pinModemPowerSwitch, LOW);
+			Serial.println(F("Iridium9602 turned off..."));
+			//Wait for modem to be fully powered down - this is important delay!
+			{ //Delay without the delay command
+					unsigned long millistart = millis();
+					while ( millis() < millistart + 5000 ) {
+					}
+			}
+			if (true == pinDSRisConnected){
+					if (HIGH == digitalRead(pinDSR)) {
+							DebugMsg::msg_P("SAT",'D',PSTR("DSR HIGH."));
+					} else {
+							DebugMsg::msg_P("SAT",'D',PSTR("DSR LOW"));
+					}
+			} else {
+			DebugMsg::msg_P("SAT",'D',PSTR("No DSR pin connected, will delay."));
+			}
+			//Turn modem on
+			Serial.println(F("Turning Sat Modem On... "));
+			Serial.flush();
+			digitalWrite(pinModemPowerSwitch, HIGH);
+			if (true == pinDSRisConnected){
+				//Check for DSR line going high to indicate boot has finished
+				{ 
+						unsigned long millistart = millis();
+						
+						while ( (millis() < (millistart + 10000)) ) //Delay without the delay command
+						{
+								if (HIGH == digitalRead(pinDSR)) 
+								{	
+										break; 
+								}
+						}
+				}
+				if (HIGH == digitalRead(pinDSR)) 
+				{
+						DebugMsg::msg_P("SAT",'D',PSTR("Modem alive."));
+						//Setup NetworkAvailable Pinchange interrupt 
+						initIridiumNetworkInterrupt();
+						modemAlive = true;
+		
+				} else {
+						DebugMsg::msg_P("SAT",'E',PSTR("!! Modem did not complete boot sequence. !!"));
+						modemAlive = false;
+				}
+			} else {
+				delay(5000);
+				
+				for(unsigned char q = 0; q<10; q++) {   //Check for modem to respond. 
+					DebugMsg::msg_P("SAT", 'I', PSTR("Are you there modem?"));
+					modemAlive = sendCommandandExpectPrefix(F("AT"), F("OK"), 10000);
+					if (modemAlive == true); break;  //exit the for loop if it responds.
+				}
+				if (true == modemAlive) {
+					//Modem completed boot sequence
+					initIridiumNetworkInterrupt();
+				} else {
+					DebugMsg::msg_P("SAT",'E',PSTR("!! Modem did not complete boot sequence. !!"));	
+					modemAlive = false;
+				}
+				
+			}
+			
+		}
+		DebugMsg::msg_P("SAT", 'I', PSTR(" Ah, hello modem, there you are.  Let's go."));
+		
         //Set Serial Character Echo Off 
         sendCommandandExpectPrefix(F("ATE0"), F("OK"), 1000);
 
@@ -571,6 +593,7 @@ void Iridium9602::powerOn(void)
 
 bool Iridium9602::isModemOn(void)
 {
+		
         if (digitalRead(pinDSR) == LOW)  //Low == 9602 is powered on
         {
                 return true;

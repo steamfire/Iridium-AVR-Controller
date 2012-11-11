@@ -176,6 +176,7 @@ class Iridium9602
                 int _MTStatus;
                 unsigned long _lastSessionTime;
                 bool _lastSessionResult;
+                bool modemAlive;
 };
 
 #endif
