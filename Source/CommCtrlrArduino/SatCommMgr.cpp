@@ -8,6 +8,7 @@
 #include "CutDown.h"
 #include "LongMsg.h"
 #include "SatQueue.h"
+#include <string.h>
 
 #define SatDebug
 
@@ -50,8 +51,8 @@ void SatCommMgr::satCommInit(I2CCommMgr * i2cCommMgr)
         }
 #if 1
     if (true == satModemAlive) {
-		snprintf((char *)sbuf, 6, "hello upu");
-		if (true == _satModem.loadMOMessage((unsigned char *)sbuf,5)) {
+		snprintf((char *)sbuf, 10, "hello upu");
+		if (true == _satModem.loadMOMessage((unsigned char *)sbuf,10)) {
 			DebugMsg::msg_P("SAT",'I',PSTR("Hello test message loaded into modem for transmit."));
 		} else {
 			DebugMsg::msg_P("SAT",'E',PSTR("Hello test message COULD NOT BE LOADED into modem for transmit."));
@@ -229,6 +230,30 @@ void SatCommMgr::sendLongMsg(unsigned char * mstr, int len)
 {
         
         
+}
+
+void SatCommMgr::sendBinaryMsg(char *str, ...) {
+
+		unsigned char chars = strlen(str);	
+	    snprintf((char *)sbuf, chars, str);			// FIXME this looks like bad code I think!
+		_satModem.loadMOMessage((unsigned char *)sbuf,chars); 
+
+}
+
+#ifdef _txtmsgworking
+void SatCommMgr::sendTextMsg(str) {
+		_satModem.loadMOTextMessage(str); 
+}
+
+void SatCommMgr::sendTextMsg(const char *str) {
+		String strn = str;
+		_satModem.loadMOTextMessage(strn); 
+}
+#endif
+
+void SatCommMgr::issueDirectCmd(char *str) {
+	_satModem.sendCommand(str);
+
 }
 
 void SatCommMgr::turnModemOn()

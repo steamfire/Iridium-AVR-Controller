@@ -20,6 +20,7 @@ User interface: Debug output available on Serial/USB from Mega board, 115000 Bps
 #include "I2CCommMgr.h"
 #include "SatCommMgr.h"
 #include <EEPROM.h>
+#include <Cmd.h>
 
 unsigned long wdResetTime = 0;
 //These things should be later integrated properly VVVVV.
@@ -28,6 +29,7 @@ volatile int SatelliteNetworkAvailable = 0;
  // (ms) Force initiate SBD session after period of no activity, in minutes, the first number in parenthesis
  // Defaults to 15 minutes
 volatile unsigned long satForceSBDSessionInterval = (15UL * 60UL * 1000UL);
+volatile bool _DEBUG_MSG_ASCII = true;
 	
 // Declare an instance of the class
 Iridium9602 iridium = Iridium9602(IRIDIUM_SERIAL_PORT);
@@ -87,12 +89,13 @@ void setup()
 wdtrst();	
    IRIDIUM_SERIAL_PORT.begin(19200);  //Sat Modem Port
    Serial.begin(115200);	//Debug-Programming Port
+   cmdInit(115200);  //Initialize the Serial Commandline User Interface from cmdArduino library
    //Serial.print("Booting...\n");
    Serial2.begin(1200);
  
  
   DebugMsg::msg_P("CC",'I',PSTR("WSB Comm Controller Reporting for Duty!"));
-
+  cmdLineSetup();
   
 //  DebugMsg::msg("CC",'I',"MSG %02d %02d %08d",30,40, 50);
 //  DebugMsg::msg("CC",'I',"MSG %02d",10);
@@ -108,7 +111,13 @@ wdtrst();
 wdtrst();  
   satCommMgr.satCommInit(  &i2cCommMgr );
 wdtrst();
+
   DebugMsg::msg_P("CC",'I',PSTR("CommCtrlr Boot Finished."));
+  
+    DebugMsg::msg_P("CC",'I',PSTR("Interactive commandline parser enabled. Use CR ONLY for line endings.\n\n\n"));
+    
+	cmdLine_help(0,0);
+    
 
 }
 int firstTime = true; //Watchdog Var
@@ -118,7 +127,7 @@ void loop()
 {
   if (firstTime){
     firstTime = false;
-    Serial.println(F("Start main loop."));
+    Serial.println(F("\n\n\nStarting main loop."));
   }
   if(millis() - wdResetTime > 2000){
     //wdtrst();  // if you uncomment this line, it will keep resetting the timer.
@@ -130,7 +139,7 @@ void loop()
   wdtrst();
   satCommMgr.update();
   wdtrst();
-  
+  cmdPoll();
   //i2cCommMgr.I2CAliveCheck();
 }
 
@@ -190,4 +199,105 @@ int atexit(void (*func)(void))
 }
 };
 
+/////////////////////////////////////////////////////////////////////////////////////////
+
+void cmdLineSetup() {  // setup the available commandline commands
+	cmdAdd("help", cmdLine_help);
+	cmdAdd("h", cmdLine_help);
+	cmdAdd("?", cmdLine_help);
+	cmdAdd("ir", cmdLine_iridiumATCommand);
+//	cmdAdd("msg", cmdLine_msgSendText);
+	cmdAdd("msgb", cmdLine_msgSendBinary);
+	cmdAdd("pinexist", cmdLine_pinExist);
+
+}
+
+void cmdLine_help(int arg_count, char **args)  {
+	Serial.println(F("Available commands, end each with a CR:"));
+	Serial.println(F("  help"));
+	Serial.println(F("  h"));
+	Serial.println(F("  ?"));
+//	Serial.println(F("  msg	[message text here up to 100 chars]"));
+//	Serial.println(F("       Loads specified text message into Iridium modem for transmit as plain text email."));
+//	Serial.println(F("       If no data is provided, it returns an error."));
+	Serial.println(F("  msgb [message binary here up to 100 bytes]"));
+	Serial.println(F("       Loads specified binary (or ASCII) data into Iridium modem for transmit as binary email attachment."));
+	Serial.println(F("       If no message provided, sends 'Hello World'"));
+	Serial.println(F("  ir [AT command here]"));
+	Serial.println(F("       Issues direct command to Iridium modem, freeform text. Debug must be on to see responses"));
+	Serial.println(F("       Useful AT commands:"));
+	Serial.println(F("         AT+CSQ          Check signal strength"));
+	Serial.println(F("         AT+SBDD         Delete the messages in the MT(inbound) and MO (outbound) message queues"));
+	Serial.println(F("         AT+SBDRT        Read the text email in the MT(inbound) message queue"));
+	Serial.println(F("         AT+CGMR         Display Modem Firmware Version Numbers"));
+	Serial.println(F("         AT+SBDWT=[text] Load text-only email message in MO(outbound) message queue."));
+	Serial.println(F("         AT+SBDSX        Messaging status, extended"));
+	Serial.println(F("       NOTE: Please avoid using SBDIX, SBDREG, and other session and SBD ring registration related commands."));	
+	Serial.println(F("             These functions are taken care of automatically by the WSB CommController code."));
+	//Serial.println(F("  pinexist [DSR | RI | NA | PWR_EN] [1 | 0]"));
+	//Serial.println(F("		Change which pins on the Iridium Modem are connected to arduino."));
+
+	
+
+}
+
+void cmdLine_msgSendBinary(int arg_count, char **args)  {
+
+	char j = 0;
+	char lstr[101];
+	if (1 == arg_count) {  // 1 when there are no arguments
+		DebugMsg::msg_P("UI",'E',PSTR("No binary message specified. Sending Hello World"));
+		satCommMgr.sendBinaryMsg("Hello World ");
+	} else {
+   		j = sprintf(lstr, "%s ", args[1]);
+   		for ( int b = 2; b<arg_count; b++) {
+   			j += sprintf(lstr+j, "%s ", args[b]);
+   		}
+   		//Serial.print(F("Will send this: "));
+   		//Serial.println(lstr);
+		satCommMgr.sendBinaryMsg(lstr,sizeof(lstr));
+	}
+}
+
+#ifdef _txtmsgworking
+void cmdLine_msgSendText(int arg_count, char **args)  {
+		char j = 0;
+	String lstr;
+	if (1 == arg_count) {  // 1 when there are no arguments
+		satCommMgr.sendTextMsg("Hello World");
+	} else {
+		for ( int b = 2; b<arg_count; b++) {
+   			lstr += args[b];
+   			lstr += ' ';
+   		}
+		satCommMgr.sendTextMsg(lstr);
+	}
+
+
+}
+#endif
+
+void cmdLine_iridiumATCommand(int arg_count, char **args)  {
+		char j = 0;
+	char lstr[101];
+	if (1 == arg_count) {  // 1 when there are no arguments
+		satCommMgr.issueDirectCmd("AT");
+	} else {
+   		j = sprintf(lstr, "%s ", args[1]);
+   		for ( int b = 2; b<arg_count; b++) {
+   			j += sprintf(lstr+j, "%s ", args[b]);
+   		}
+   		//Serial.print(F("Will send this: "));
+   		//Serial.println(lstr);
+		satCommMgr.issueDirectCmd(lstr);
+	}
+
+
+}
+
+void cmdLine_pinExist(int arg_count, char **args)  {
+	
+
+
+}
 

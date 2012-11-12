@@ -19,6 +19,7 @@ void initIridiumNetworkInterrupt();
 
 extern volatile int NetworkAvailableJustChanged;
 extern volatile int SatelliteNetworkAvailable;
+extern volatile bool _DEBUG_MSG_ASCII;
 
 Iridium9602::Iridium9602(HardwareSerial& sPort) : _HardwareSerial(sPort), _rcvIdx(0)
 {
@@ -45,7 +46,7 @@ bool Iridium9602::initModem()
 			//Wait for modem to be fully powered down - this is important delay!
 			{ //Delay without the delay command
 					unsigned long millistart = millis();
-					while ( millis() < millistart + 5000 ) {
+					while ( millis() < millistart + 3000 ) {
 					}
 			}
 			if (true == pinDSRisConnected){
@@ -81,16 +82,16 @@ bool Iridium9602::initModem()
 				}
 			} else {
 			}
-			
+			for(unsigned char q = 0; q<60; q++) {   //Check for modem to respond for 6 tries. 
+				DebugMsg::msg_P("SAT", 'I', PSTR("Modem, talk to me."));
+				modemAlive = sendCommandandExpectPrefix(F("AT"), F("OK"), 1000, true);
+				clearIncomingMsg();  // clear incoming cmd buffer
+				if (true == modemAlive) { //Modem responded properly if true
+					break;  //exit the for loop.
+				}
+			}	
 		}
-		for(unsigned char q = 0; q<6; q++) {   //Check for modem to respond for 6 tries. 
-			DebugMsg::msg_P("SAT", 'I', PSTR("Modem, talk to me."));
-			modemAlive = sendCommandandExpectPrefix(F("AT"), F("OK"), 10000, true);
-            clearIncomingMsg();  // clear incoming cmd buffer
-			if (true == modemAlive) { //Modem responded properly if true
-				break;  //exit the for loop.
-			}
-		}
+
 		if (true == modemAlive) {
 			DebugMsg::msg_P("SAT", 'I', PSTR(" Ah, hello modem, there you are.  Let's go."));
 			
@@ -635,13 +636,18 @@ bool Iridium9602::loadMOMessage(unsigned char* messageArray, int messageLength)
 #if 0
         Serial.print(F("Starting ... ck:"));
         sprintf(buf, "%x\n", checksum);
-        Serial.print(buf);
-
-        for (int i = 0; i < messageLength; i++){
-                sprintf(buf, "%02x ", messageArray[i]);
-                Serial.print(buf);
-        }
+        Serial.println(buf);
 #endif
+		Serial.print(F("Loading to modem: '"));
+        for (int i = 0; i < messageLength; i++){
+        		if(true == _DEBUG_MSG_ASCII) {
+        			sprintf(buf, "%c", messageArray[i]);
+        		} else {
+                	sprintf(buf, "%02x ", messageArray[i]);
+                }
+                Serial.print(buf);  
+        }
+		Serial.println("'");
 #endif
 
         /* write message length */
@@ -654,11 +660,14 @@ bool Iridium9602::loadMOMessage(unsigned char* messageArray, int messageLength)
         if (checksum != messageLength + 2) return false;
 
 #ifdef _WS_DEBUG
+#if 0
         sprintf(buf, "* %02x ", checksumHighByte);
         Serial.print(buf);
-        sprintf(buf, "%02x\n", checksumLowByte);
+        sprintf(buf, "%02x", checksumLowByte);
         Serial.print(buf);
-        Serial.println(F("DONE"));
+
+        //Serial.println(F("DONE"));
+#endif
 #endif
 
         /* XXX Don't know if new line is needed */
@@ -677,6 +686,33 @@ bool Iridium9602::loadMOMessage(unsigned char* messageArray, int messageLength)
         _MOQueued = true;
         return true;
 }
+
+#ifdef _txtmsgworking
+bool Iridium9602::loadMOTextMessage(String messageString) 	{
+
+		_HardwareSerial.print("AT+SBDWT=");
+		/*
+		for (unsigned char n = 0; n<messageLength; n++) {
+			_HardwareSerial.print(messageArray[n]);
+		}
+		*/
+		_HardwareSerial.print(messageString);
+        _HardwareSerial.print("\r\n");
+
+#if _WS_DEBUG
+        Serial.print(F(" --> >"));
+        Serial.println(messageString);
+#endif
+		
+		if(true == expectPrefix("OK", satResponseTimeout, true)) {
+				_MOQueued = true;
+				return true;
+		} else {
+			DebugMsg::msg_P("SAT", 'E',PSTR("Text message failed to load into Iridium."), _receivedCmd);
+			return false;
+		}
+}
+#endif
 
 bool Iridium9602::initiateSBDSession(unsigned long timeout)
 {

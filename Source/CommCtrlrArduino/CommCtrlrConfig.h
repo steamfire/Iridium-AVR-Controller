@@ -5,6 +5,7 @@
 #define __WHITESTARBALLOON__
 /* define to enable debug messages */
 #define _WS_DEBUG 1
+//#define _txtmsgworking
 
 #if (ARDUINO >= 100)
 #include <Arduino.h>
@@ -46,7 +47,7 @@ const int scl = 19;                                // I2C SCL
  
  #define pinRIisConnected true						//not yet paid attention to
  #define pinNAisConnected true   					//not yet paid attention to
- #define pinDSRisConnected true 					//Rockblock does not provide this pin, set it to FALSE if using RockBlock
+ #define pinDSRisConnected false 					//Rockblock does not provide this pin, set it to FALSE if using RockBlock
  #define pinModemPowerSwitchisConnected true  		//not yet paid attention to
 
 /*******************************

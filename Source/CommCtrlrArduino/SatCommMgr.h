@@ -22,6 +22,12 @@ public:
         SatCommMgr(Iridium9602& satModem);
         
         void satCommInit(I2CCommMgr * i2cCommMgr);
+        void issueDirectCmd(char *str);
+        void sendBinaryMsg(char *str, ...);
+        #ifdef _txtmsgworking
+		void sendTextMsg(String);
+		void sendTextMsg(const char*);
+		#endif
         void update(void);
         void turnModemOn();
         void turnModemOff();
@@ -33,6 +39,7 @@ private:
         Iridium9602& _satModem;
         void sendShortMsg(ShortMsg sm);
         void sendLongMsg(unsigned char * mstr, int len);
+
         unsigned long _last_millis;
         //SatQueue& satQueue;
         I2CCommMgr * _i2cCommMgr;

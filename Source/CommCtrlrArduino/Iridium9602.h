@@ -56,6 +56,9 @@ class Iridium9602
                 inline bool isRinging(void) const { return _bRing; }
 
                 bool loadMOMessage(unsigned char * , int ); 
+                #ifdef _txtmsgworking
+                bool loadMOTextMessage(String messageString);
+				#endif
                 bool initiateSBDSession(unsigned long timeout);
    				
                 /* parse an unsolicited response from the modem */
