@@ -26,6 +26,7 @@ public:
         void turnModemOn();
         void turnModemOff();
         bool initiate_session;
+        bool satModemAlive;
         
 		
 private:

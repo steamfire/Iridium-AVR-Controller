@@ -26,7 +26,7 @@ Iridium9602::Iridium9602(HardwareSerial& sPort) : _HardwareSerial(sPort), _rcvId
 
 
 
-void Iridium9602::initModem()
+bool Iridium9602::initModem()
 {
         _rcvIdx = 0;
         _bRing = false;
@@ -70,61 +70,58 @@ void Iridium9602::initModem()
 						{
 								if (HIGH == digitalRead(pinDSR)) 
 								{	
+										DebugMsg::msg_P("SAT", 'I', PSTR("Modem Power On Detected. (DSR HIGH)"));
+										modemAlive = true;
 										break; 
 								}
 						}
+				if (modemAlive == false) {
+					DebugMsg::msg_P("SAT",'E',PSTR("!! Modem did not power up. (DSR line not high) !!"));
 				}
-				if (HIGH == digitalRead(pinDSR)) 
-				{
-						DebugMsg::msg_P("SAT",'D',PSTR("Modem alive."));
-						//Setup NetworkAvailable Pinchange interrupt 
-						initIridiumNetworkInterrupt();
-						modemAlive = true;
-		
-				} else {
-						DebugMsg::msg_P("SAT",'E',PSTR("!! Modem did not complete boot sequence. !!"));
-						modemAlive = false;
 				}
 			} else {
-				delay(5000);
-				
-				for(unsigned char q = 0; q<10; q++) {   //Check for modem to respond. 
-					DebugMsg::msg_P("SAT", 'I', PSTR("Are you there modem?"));
-					modemAlive = sendCommandandExpectPrefix(F("AT"), F("OK"), 10000);
-					if (modemAlive == true); break;  //exit the for loop if it responds.
-				}
-				if (true == modemAlive) {
-					//Modem completed boot sequence
-					initIridiumNetworkInterrupt();
-				} else {
-					DebugMsg::msg_P("SAT",'E',PSTR("!! Modem did not complete boot sequence. !!"));	
-					modemAlive = false;
-				}
-				
 			}
 			
 		}
-		DebugMsg::msg_P("SAT", 'I', PSTR(" Ah, hello modem, there you are.  Let's go."));
-		
-        //Set Serial Character Echo Off 
-        sendCommandandExpectPrefix(F("ATE0"), F("OK"), 1000);
-
-        //Set modem to not use flow control handshaking during SBD messaging √
-        sendCommandandExpectPrefix(F("AT&K0"), F("OK"), 1000);
-
-        //Set response quiet mode - 0 = responses ARE sent to arduino from modem √
-        sendCommandandExpectPrefix(F("ATQ0"), F("OK"), 1000);
-
-        setIncommingMsgAlert(false);
-
-        // Write the defaults to the modem and use default and flush to eeprom √
-        sendCommandandExpectPrefix(F("AT&W0"), F("OK"), 1000);
-
-        //Designate Default Reset Profile
-        sendCommandandExpectPrefix(F("AT&Y0"), F("OK"), 1000);
-
-        setIndicatorReporting(true);
-        setIncommingMsgAlert(true);
+		for(unsigned char q = 0; q<6; q++) {   //Check for modem to respond for 6 tries. 
+			DebugMsg::msg_P("SAT", 'I', PSTR("Modem, talk to me."));
+			modemAlive = sendCommandandExpectPrefix(F("AT"), F("OK"), 10000, true);
+            clearIncomingMsg();  // clear incoming cmd buffer
+			if (true == modemAlive) { //Modem responded properly if true
+				break;  //exit the for loop.
+			}
+		}
+		if (true == modemAlive) {
+			DebugMsg::msg_P("SAT", 'I', PSTR(" Ah, hello modem, there you are.  Let's go."));
+			
+			//Set Serial Character Echo Off 
+			sendCommandandExpectPrefix(F("ATE0"), F("OK"), 1000);
+	
+			//Set modem to not use flow control handshaking during SBD messaging √
+			sendCommandandExpectPrefix(F("AT&K0"), F("OK"), 1000);
+	
+			//Set response quiet mode - 0 = responses ARE sent to arduino from modem √
+			sendCommandandExpectPrefix(F("ATQ0"), F("OK"), 1000);
+	
+			setIncommingMsgAlert(false);
+	
+			// Write the defaults to the modem and use default and flush to eeprom √
+			sendCommandandExpectPrefix(F("AT&W0"), F("OK"), 1000);
+	
+			//Designate Default Reset Profile
+			sendCommandandExpectPrefix(F("AT&Y0"), F("OK"), 1000);
+			
+			//Setup pin interrupt for network available signal
+			initIridiumNetworkInterrupt(); 
+			
+			setIndicatorReporting(true);
+			setIncommingMsgAlert(true);
+        } else {
+			DebugMsg::msg_P("SAT",'E',PSTR("!! Modem did not respond to serial command 'AT' !!"));	
+			DebugMsg::msg_P("SAT",'I',PSTR(" Check serial connection to modem.  Assuming modem is dead. Reboot to try again."));	
+		}
+        
+        return modemAlive;
 }
 
 void Iridium9602::clearIncomingMsg(void)
@@ -283,7 +280,7 @@ bool Iridium9602::expectLoop(const void * response,
                 /* time left */
                 unsigned long to = timeout - (millis() - starttime);
                 /* make sure that we don't pass in 0 or we'll block */
-                if (to == 0) to = 1; /* use 1 ms */
+                if (to == 0) to = 1; // use 1 ms  ---- FIXME  - this looks like bad code!
 
 #if 0
                 DebugMsg::msg_P("SAT", 'I', PSTR("%s: timeout: %d to: %d st: %d ml: %d"), 

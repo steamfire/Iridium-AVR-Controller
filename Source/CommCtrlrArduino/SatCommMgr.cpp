@@ -28,20 +28,22 @@ void SatCommMgr::satCommInit(I2CCommMgr * i2cCommMgr)
 {
         DebugMsg::msg_P("SAT",'D',PSTR("SatModem Init Start..."));
         wdtrst();
-        _satModem.initModem();
+        satModemAlive = _satModem.initModem();
         wdtrst();
-        //Make sure to initiate one SBD session right off, to get registrered for rings.
+        //Make sure to initiate one SBD session right off, to get registered for rings.
         initiate_session = true;
         _i2cCommMgr = i2cCommMgr;
         wdtrst();
         DebugMsg::msg_P("SAT",'I',PSTR("SatModem Init Completed."));
 #if 1
-  {
-    
-    snprintf((char *)sbuf, 6, "hello upu");
-    _satModem.loadMOMessage((unsigned char *)sbuf,5);
-    Serial.print(F("Hello Sent!\n"));
-  }
+    if (true == satModemAlive) {
+		snprintf((char *)sbuf, 6, "hello upu");
+		if (true == _satModem.loadMOMessage((unsigned char *)sbuf,5)) {
+			DebugMsg::msg_P("SAT",'I',PSTR("Hello test message loaded into modem for transmit."));
+		} else {
+			DebugMsg::msg_P("SAT",'E',PSTR("Hello test message COULD NOT BE LOADED into modem for transmit."));
+		}
+	}
 #endif
 
 }

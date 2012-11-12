@@ -19,7 +19,7 @@ class Iridium9602
 
         public:
                 Iridium9602( HardwareSerial& sPort);
-                void initModem();
+                bool initModem();
 
                 void clearIncomingMsg();
                 void flushIncomingMsg();
