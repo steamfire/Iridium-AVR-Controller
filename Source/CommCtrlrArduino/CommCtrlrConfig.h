@@ -46,7 +46,7 @@ const int scl = 19;                                // I2C SCL
  
  #define pinRIisConnected true						//not yet paid attention to
  #define pinNAisConnected true   					//not yet paid attention to
- #define pinDSRisConnected false 					//Rockblock does not provide this pin, set it to FALSE if using RockBlock
+ #define pinDSRisConnected true 					//Rockblock does not provide this pin, set it to FALSE if using RockBlock
  #define pinModemPowerSwitchisConnected true  		//not yet paid attention to
 
 /*******************************
