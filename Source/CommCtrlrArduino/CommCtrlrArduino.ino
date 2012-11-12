@@ -107,15 +107,6 @@ wdtrst();
 	}
 wdtrst();  
   satCommMgr.satCommInit(  &i2cCommMgr );
-  			//Slightly randomize the delay between SBD checks
-  			randomSeed(analogRead(10));
-  			satForceSBDSessionInterval += (random(60000)-random(60000));
-  			Serial.print(F("SetMaxSBDInterval to: "));
-  			Serial.print(satForceSBDSessionInterval,DEC);
-  			Serial.print(F(" (m:s): "));
-			Serial.print((satForceSBDSessionInterval/60000),DEC);
-			Serial.print(":");
-			Serial.println((satForceSBDSessionInterval%60000)/1000,DEC);
 wdtrst();
   DebugMsg::msg_P("CC",'I',PSTR("CommCtrlr Boot Finished."));
 

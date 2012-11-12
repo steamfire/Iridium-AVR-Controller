@@ -30,11 +30,24 @@ void SatCommMgr::satCommInit(I2CCommMgr * i2cCommMgr)
         wdtrst();
         satModemAlive = _satModem.initModem();
         wdtrst();
-        //Make sure to initiate one SBD session right off, to get registered for rings.
-        initiate_session = true;
-        _i2cCommMgr = i2cCommMgr;
-        wdtrst();
-        DebugMsg::msg_P("SAT",'I',PSTR("SatModem Init Completed."));
+        if(true == satModemAlive) {
+        	//Make sure to initiate one SBD session right off, to get registered for rings.
+        	initiate_session = true;
+        	_i2cCommMgr = i2cCommMgr;
+        	wdtrst();
+          	//Slightly randomize the delay between SBD checks
+  			randomSeed(analogRead(10));
+  			satForceSBDSessionInterval += (random(60000)-random(60000));
+  			Serial.print(F("SetMaxSBDInterval to: "));
+  			Serial.print(satForceSBDSessionInterval,DEC);
+  			Serial.print(F(" (m:s): "));
+			Serial.print((satForceSBDSessionInterval/60000),DEC);
+			Serial.print(":");
+			Serial.println((satForceSBDSessionInterval%60000)/1000,DEC);
+        	DebugMsg::msg_P("SAT",'I',PSTR("SatModem Init Completed."));
+        } else {
+        	DebugMsg::msg_P("SAT",'E',PSTR("SatModem Init FAILED."));
+        }
 #if 1
     if (true == satModemAlive) {
 		snprintf((char *)sbuf, 6, "hello upu");
