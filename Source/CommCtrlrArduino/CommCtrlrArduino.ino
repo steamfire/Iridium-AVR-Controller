@@ -94,7 +94,10 @@ wdtrst();
    Serial2.begin(1200);
  
  
-  DebugMsg::msg_P("CC",'I',PSTR("WSB Comm Controller Reporting for Duty!"));
+  DebugMsg::msg_P("CC",'I',PSTR("**** White Star Iridium 9602 Modem Controller **** \n\n"));
+  DebugMsg::msg_P("CC",'I',PSTR("Distributed under MIT License"));
+  DebugMsg::msg_P("CC",'I',PSTR("Originally a White Star Balloon project by Dan Bowen, Bill Peipmeyer, and Chorgy"));
+  DebugMsg::msg_P("CC",'I',PSTR("Currently maintained by Dan Bowen, dan@balloonconsulting.com"));
   cmdLineSetup();
   
 //  DebugMsg::msg("CC",'I',"MSG %02d %02d %08d",30,40, 50);
@@ -127,7 +130,7 @@ void loop()
 {
   if (firstTime){
     firstTime = false;
-    Serial.println(F("\n\n\nStarting main loop."));
+	DebugMsg::msg_P("CC",'D',PSTR("Starting main loop."));
   }
   if(millis() - wdResetTime > 2000){
     //wdtrst();  // if you uncomment this line, it will keep resetting the timer.
@@ -205,10 +208,11 @@ void cmdLineSetup() {  // setup the available commandline commands
 	cmdAdd("help", cmdLine_help);
 	cmdAdd("h", cmdLine_help);
 	cmdAdd("?", cmdLine_help);
+	cmdAdd("ccc", cmdLine_commControlCommand);
 	cmdAdd("ir", cmdLine_iridiumATCommand);
 //	cmdAdd("msg", cmdLine_msgSendText);
 	cmdAdd("msgb", cmdLine_msgSendBinary);
-	cmdAdd("pinexist", cmdLine_pinExist);
+	cmdAdd("settings", cmdLine_settings);
 
 }
 
@@ -234,8 +238,20 @@ void cmdLine_help(int arg_count, char **args)  {
 	Serial.println(F("         AT+SBDSX        Messaging status, extended"));
 	Serial.println(F("       NOTE: Please avoid using SBDIX, SBDREG, and other session and SBD ring registration related commands."));	
 	Serial.println(F("             These functions are taken care of automatically by the WSB CommController code."));
-	//Serial.println(F("  pinexist [DSR | RI | NA | PWR_EN] [1 | 0]"));
-	//Serial.println(F("		Change which pins on the Iridium Modem are connected to arduino."));
+/*
+	Serial.println(F("  ccc [0x00-0xFF]                  Test comm control commands, as used on I2C bus or uplink messsages. Hex data format."));
+	Serial.println(F("  settings                         Displays All Settings"));
+	Serial.println(F("  settings debuglevel [0]          0 = no output 9 = lots of output"));
+	Serial.println(F("  settings pinexists [DSR | RI | NA | PWR_EN] [true | false]"));
+	Serial.println(F("		 Specify which pins on the Iridium Modem are connected to arduino.  true = connected, false = not connected"));	
+	Serial.println(F("  settings sbdcheckinterval [0 | 60-2147483 seconds]"));           
+	Serial.println(F("       If no SBD sessions are requested by user or satellite, after this much time has passed, a session will be requested."));
+	Serial.println(F("       This time interval is slightly randomized every time to comply with Iridium traffic rules."));
+	Serial.println(F("  settings i2cmyaddr [0x00-0xFF]     Set I2C self address of this arduino comm controller.
+	Serial.println(F("  settings i2cfcaddr [0x00-0xFF]     Set I2C  address of the flight computer.	
+	Serial.println(F("  settings deviceexists [CDN | FC] [true | false]"));
+	Serial.println(F("       Indicate which devices are connected.  It won't try to communicate with devices that aren't there."));	
+*/
 
 	
 
@@ -295,9 +311,19 @@ void cmdLine_iridiumATCommand(int arg_count, char **args)  {
 
 }
 
-void cmdLine_pinExist(int arg_count, char **args)  {
-	
+void cmdLine_commControlCommand(int arg_count, char **args)  {
+	if (1 == arg_count) {  // 1 when there are no arguments
+		Serial.print(F("ERROR: No command specified."));
+	} else {
+		
+		
+	}
 
 
 }
 
+void cmdLine_settings(int arg_count, char **args)  {
+	
+
+
+}
