@@ -33,3 +33,5 @@ Arduino Pin / Connection
 19 IRIDIUM Serial RXI
 20 I2C SCL - To EEPROM and User Microcontroller
 21 I2C SDA - To EEPROM and User Microcontroller
+
+This software is licensed under the MIT license.  See LICENSE.txt for details.

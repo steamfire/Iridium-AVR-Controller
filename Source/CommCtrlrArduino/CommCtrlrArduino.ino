@@ -1,10 +1,23 @@
 /*
 Hardware required: 
-	Arduino MEGA 2560
+	Arduino MEGA 2560 (tested on r3)
 	I2C EEPROM
 	Iridium 9602 Modem
+	Appropriate power circuitry for 9602 (seriously rigid power requirements)
+	
+Arduino IDE Compatibility:
+	<1.0 - very unlikely
+	1.0 - Probably
+	1.0.2 - YES
+	
+Arduino Libraries required:
+    WSWire v1.0:               https://github.com/whitestarballoon/WSWireLib
+    CmdArduino Dec 28, 2011:   https://github.com/fakufaku/CmdArduino
 	
 User interface: Debug output available on Serial/USB from Mega board, 115000 Bps
+Messaging interface: I2C bus - connect another arduino or other MCU via I2C
+
+This software is licensed under the terms of the MIT license.  See LICENSE.txt for details.
 */
 
 #define __WHITESTARBALLOON__
