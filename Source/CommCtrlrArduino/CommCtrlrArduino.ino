@@ -94,7 +94,8 @@ wdtrst();
    Serial.begin(115200);	//Debug-Programming Port
    cmdInit(115200);  //Initialize the Serial Commandline User Interface from cmdArduino library
    //Serial.print("Booting...\n");
-   Serial2.begin(1200);
+   
+
  
  
   DebugMsg::msg_P("CC",'I',PSTR("**** White Star Iridium 9602 Modem Controller **** \n\n"));
@@ -105,8 +106,11 @@ wdtrst();
   
 //  DebugMsg::msg("CC",'I',"MSG %02d %02d %08d",30,40, 50);
 //  DebugMsg::msg("CC",'I',"MSG %02d",10);
-
+#if (__CUTDOWNENABLED__ == true)
+     Serial2.begin(1200);
   CutDown::initCutdown(&CUTDOWN_SERIAL_PORT);
+#endif
+
 wdtrst();  
   i2cCommMgr.i2cInit();
 wdtrst();  

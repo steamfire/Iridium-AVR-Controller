@@ -24,8 +24,9 @@ extern unsigned long wdResetTime;
 Global Configuration Information
 */
 #define IRIDIUM_SERIAL_PORT Serial1
-#define CUTDOWN_SERIAL_PORT Serial2
-
+#if (__CUTDOWNENABLED__ == true)
+	#define CUTDOWN_SERIAL_PORT Serial2
+#endif
 
 
 /*******************************
@@ -49,6 +50,10 @@ const int scl = 19;                                // I2C SCL
  #define pinNAisConnected true   					//not yet paid attention to
  #define pinDSRisConnected false 					//Rockblock does not provide this pin, set it to FALSE if using RockBlock
  #define pinModemPowerSwitchisConnected true  		//not yet paid attention to
+
+//Cutdown enable
+
+#define __CUTDOWNENABLED__ false
 
 /*******************************
  *    Address declarations     *

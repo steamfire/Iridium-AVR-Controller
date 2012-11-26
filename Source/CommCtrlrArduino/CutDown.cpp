@@ -27,10 +27,12 @@ HardwareSerial * CutDown::cdn;
 //Cutdown Initialization
 void CutDown::initCutdown(HardwareSerial * sPort)
 {
+#if (__CUTDOWNENABLED__ == true)
   cdn = sPort;
   boolean respondFlag = false;	
   char tempin;
   DebugMsg::msg_P("CD",'I',PSTR("cdnInit."));
+
   for (byte m = 0; m<10; m++) {  // Look for response
 
     Serial2.println("!R");  //Reset deadman timer
@@ -50,6 +52,7 @@ void CutDown::initCutdown(HardwareSerial * sPort)
   delay(500);
   CmdSet(250);  // Immediately set the cutdown to maximum time to give time to work
   }
+#endif
 }
 
 
@@ -57,6 +60,7 @@ void CutDown::initCutdown(HardwareSerial * sPort)
 //Cut down immediately
 void CutDown::CutdownNOW()
 {
+#if (__CUTDOWNENABLED__ == true)
   for (byte m = 0; m<10; m++) {
     Serial2.println("!CUTDOWNNOW");
     delay(100);
@@ -69,22 +73,26 @@ void CutDown::CutdownNOW()
 //FIX ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
   DebugMsg::msg_P("CD",'W',PSTR("Cutdown NOW"));
+#endif
 }
 
 //Heartbeat reset
 void CutDown::ResetTimer() {
+#if (__CUTDOWNENABLED__ == true)
   for (byte i = 0; i<10; i++) {
     Serial2.println("!R");
     delay(100);
   }
   //Serial.println("cdn!R");
   DebugMsg::msg_P("CD",'I',PSTR("Deadman Timer Reset! Die another day."));
+#endif
 }
 
 // Set deadman timer time in minutes, which also resets the timer
 void CutDown::CmdSet(unsigned char deadManTime) {
+
   DebugMsg::msg_P("CD",'I',PSTR("Timer Set to %d Minutes."), deadManTime);
-  
+  #if (__CUTDOWNENABLED__ == true)
   // DO NOT TRY TO PRINT TO I2C IN THIS FUNCTION IF I2C HAS NOT YET INITIALIZED!  IT WILL FREEZE 
   //COMMCONTROLLER DURING BOOT SEQUENCE WHEN IT INITIALIZES CUTDOWN MODULE!
   for (byte i = 0; i<10; i++) {
@@ -110,7 +118,7 @@ void CutDown::CmdSet(unsigned char deadManTime) {
     }
 
   }
-
+#endif
 }
 
 
