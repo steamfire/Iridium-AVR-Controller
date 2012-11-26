@@ -81,16 +81,6 @@ void setup()
    digitalWrite(A5,LOW);
 
 
-   //Set I2C White Star Shield alternate pins to inputs, then disable pullup resistor
-   pinMode(A8,INPUT);
-   pinMode(A9,INPUT);
-   pinMode(A10,INPUT);
-   pinMode(A11,INPUT);
-   digitalWrite(A8,LOW);
-   digitalWrite(A9,LOW);
-   digitalWrite(A10,LOW);
-   digitalWrite(A11,LOW);
-
   //Set up sat modem capacitor voltage measure pin as input
    pinMode(A0, INPUT);
    digitalWrite(A0, LOW);
