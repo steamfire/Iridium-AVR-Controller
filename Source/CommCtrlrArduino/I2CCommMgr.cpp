@@ -24,6 +24,7 @@ _satCommMgr(satCommMgr)
 //Check the I2C pins for specific freeze/lockup pattern of constant low SDA.  SDA should float high.
 // Returns true when frozen
 boolean I2CCommMgr::CheckForI2CFreeze(){
+//FIXME in all branches this is not portable!
 	boolean sdaValue;
 	unsigned int icheck;
 	sdaValue = ((PIND & 0b10) >> 1);
