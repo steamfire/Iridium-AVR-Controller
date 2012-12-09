@@ -38,8 +38,6 @@ Global Configuration Information
 #define pinModemPowerSwitch 4
 #define pinBrownout 5
 //define pinVoltageMeasure A0
-const int sda = 18;                                // I2C SDA
-const int scl = 19;                                // I2C SCL
 
 /*******************************
  *    Connected Iridium Modem Pins  *
