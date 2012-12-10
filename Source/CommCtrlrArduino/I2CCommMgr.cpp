@@ -7,7 +7,7 @@
 #include "CutDown.h"
 #include "Iridium9602.h"
 #include "SatCommMgr.h"
-#include <EEPROM.h>
+#include <EEPROMex.h>
 
 #define i2cDebug
 /* 

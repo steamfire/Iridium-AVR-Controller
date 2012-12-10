@@ -13,6 +13,7 @@ Arduino IDE Compatibility:
 Arduino Libraries required:
     WSWire v1.0:               https://github.com/whitestarballoon/WSWireLib
     CmdArduino Dec 28, 2011:   https://github.com/fakufaku/CmdArduino
+    EEPROMex 0.8.2:            http://thijs.elenbaas.net/2012/07/extended-eeprom-library-for-arduino/
 	
 User interface: Debug output available on Serial/USB from Mega board, 115000 Bps
 Messaging interface: I2C bus - connect another arduino or other MCU via I2C
@@ -32,7 +33,7 @@ This software is licensed under the terms of the MIT license.  See LICENSE.txt f
 #include "CutDown.h"
 #include "I2CCommMgr.h"
 #include "SatCommMgr.h"
-#include <EEPROM.h>
+#include <EEPROMex.h>
 #include <Cmd.h>
 
 unsigned long wdResetTime = 0;
