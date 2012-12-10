@@ -74,6 +74,7 @@ const unsigned int maxTelemLenConst = 340;          //Maximum acceptable length 
 const int LongMsgQueueLen = 20;             // Number of messages that can be in the queue to send out sat modem
 const unsigned long satResponseTimeout = 1 * 60UL * 1000UL;       // (ms) Timeout used when waiting for response timeouts
 const unsigned int satSBDIXResponseLost = 30000;     // (ms) How much time to wait before assuming SBDIX command failed
+const unsigned long satSBDIntervalRandomizePlusMinusMillis = 60000UL;
 
 
 /*******************************
@@ -98,10 +99,6 @@ const unsigned int satMessageCharBufferSize = 340;  //Char array size for loadin
  *******************************/
 const byte i2cCmdSATTXATCRpt = 0x00;
 const byte i2cCmdSATTxFrmEEPROM = 0x01;
-const byte i2cCmdHFUpdtTelem = 0x02;
-const byte i2cCmdHFTxShortRpt = 0x03;
-const byte i2cCmdHFSetTxRate = 0x04;
-const byte i2cCmdHFSnooze = 0x05;
 const byte i2cCmdCDNHeartBeat = 0x06;
 const byte i2cCmdCDNSetTimerAndReset = 0x07;
 const byte i2cCmdUpdateCurrentEpochTime = 0x08;
@@ -114,20 +111,20 @@ const byte i2cCmdForceSatSession = 0x20;
 const byte i2cRebootCountMax = 5;
 
 /*******************************
- *   Internal EEPROM Locations         *
- *******************************/
-const int EPLOCcmdCounterArrayStart = 2; 
-const int EPLENcmdCounterArray = 76;  //76 byte array to store used received command counter numbers.
-const int EPLOCAtcReportPairArrayStart = 80;  // Arduino EEPROM location to store the latest ATC report pair
-const int EPLOCAtcReportPairArray = 12;
-const int EPLOCI2CRebootCount = 100;
-const int EPLOCLastMaxSBDDelayStart = 101;
-
-/*******************************
  *   Internal EEPROM Allocation       *
  *******************************/
-#define EPCONFIG_VERSION "aaa"      // ID of the settings block
-#define memoryBase 127		       // Tell it where to store your config data in EEPROM
+const int EPloadDefaultsFlagAddr = 1;  //If content at this byte is non-zero it will load defaults into eeprom
+#define EPCONFIG_VERSION "aah"      // ID of the settings block
+#define memoryBase 10		       // Tell it where to store your config data in EEPROM
+
+struct StoreStruct {
+	char version[4];  //Config version number
+	volatile unsigned long satDesiredSBDSessionInterval;
+	byte debuglevel;
+	bool pinExistsDSR, pinExistsRI, pinExistsNA, pinExistsPWR_EN, 
+	useInterruptPinRI, useInterruptPinNA;
+	byte i2cmyaddr, i2cuseraddr, operationMode, rebootCount;
+};
 
 #endif
 

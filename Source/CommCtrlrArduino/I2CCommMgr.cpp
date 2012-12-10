@@ -10,6 +10,9 @@
 #include <EEPROMex.h>
 
 #define i2cDebug
+
+extern struct StoreStruct prefs;
+extern void savePrefsIfChanged();
 /* 
  I2CXmit - Program for communicating via I2C Bus
  Created by White Star Balloon, December 11, 2010.
@@ -49,15 +52,16 @@ boolean I2CCommMgr::CheckForI2CFreeze(){
 
 
 void I2CCommMgr::I2CAliveCheck(){
-	 byte rebootCount=0; 
+	 //byte rebootCount=0; 
 	 unsigned int countdown=TIMEOUTPERIODs;
-	 rebootCount = EEPROM.read(EPLOCI2CRebootCount);
+	 //rebootCount = EEPROM.read(EPLOCI2CRebootCount);
 	 if (CheckForI2CFreeze()) {//If I2C is frozen:
-	 	if (rebootCount < i2cRebootCountMax) {  //and we haven't rebooted too many times yet, reboot:
+	 	if (prefs.rebootCount < i2cRebootCountMax) {  //and we haven't rebooted too many times yet, reboot:
 			
 			Serial.print(F("Going down for reboot number "));
-			Serial.print(rebootCount++);  //print and increment the rebootcount
-			EEPROM.write(EPLOCI2CRebootCount,rebootCount);  //Write new rebootcount to eeprom for next boot cycle to read
+			Serial.print(prefs.rebootCount++);  //print and increment the rebootcount
+			savePrefsIfChanged();//Write new rebootcount to eeprom for next boot cycle to read
+			//EEPROM.write(EPLOCI2CRebootCount,rebootCount);  //Write new rebootcount to eeprom for next boot cycle to read
 			Serial.println(F(" in... "));
 			wdtrst();
 			while (1){
@@ -68,15 +72,17 @@ void I2CCommMgr::I2CAliveCheck(){
 	 	
 		} 
 		//Have rebooted too many times! Continue checking, but not rebooting.
-		if (rebootCount=i2cRebootCountMax) {
+		if (prefs.rebootCount==i2cRebootCountMax) {
 			//SEND A MESSAGE HOME SAYING I2C IS BORKED.
-			rebootCount++;
-			EEPROM.write(EPLOCI2CRebootCount,rebootCount);  //Write new rebootcount to eeprom for next boot cycle to read
+			prefs.rebootCount++;
+			//EEPROM.write(EPLOCI2CRebootCount,rebootCount);  //Write new rebootcount to eeprom for next boot cycle to read
+			savePrefsIfChanged(); //Write new rebootcount to eeprom for next boot cycle to read
 		}
-	 } else if (rebootCount != 0) {
+	 } else if (prefs.rebootCount != 0) {
 	 	//If it's just recovered, then reset the reboot counter.
-	 	rebootCount = 0;
-	 	EEPROM.write(EPLOCI2CRebootCount,rebootCount);  //Write new rebootcount to eeprom for next boot cycle to read
+	 	prefs.rebootCount = 0;
+	 	//EEPROM.write(EPLOCI2CRebootCount,rebootCount);  //Write new rebootcount to eeprom for next boot cycle to read
+	 	savePrefsIfChanged();
 	 	Serial.println(F("I2C is alive once again, carry on."));
 	 	//SEND MESSAGE HOME SAYING I2C ISN'T BORKED ANYMORE.
 	 }
@@ -168,7 +174,7 @@ void I2Csend(byte length) {
 void I2CCommMgr::i2cInit()
 {
   wdtrst();
-  Wire.begin(i2cCommCtrlAddr);                                   // Join I2C Bus as slave
+  Wire.begin(prefs.i2cmyaddr);                                   // Join I2C Bus as slave
 #define TWI_FREQ_WSBFAST 400000UL
 #ifndef CPU_FREQ
 #define CPU_FREQ = 16000000UL
@@ -176,7 +182,7 @@ void I2CCommMgr::i2cInit()
   //TWBR = ((CPU_FREQ / TWI_FREQ_WSBFAST) - 16) / 2;  // Make I2C FASTER! to 400KHz
 
   Wire.onReceive(I2CCommMgr::i2cReceiveData);                            // Set On Receive Handler
-  DebugMsg::msg_P("I2C",'I',PSTR("I2C Init Done. Addr %x"),i2cCommCtrlAddr);
+  DebugMsg::msg_P("I2C",'I',PSTR("I2C Init Done. Addr %x"),prefs.i2cmyaddr);
 
 }
 

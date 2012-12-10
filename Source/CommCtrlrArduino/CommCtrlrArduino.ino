@@ -43,18 +43,24 @@ unsigned long wdResetTime = 0;
 //********
 volatile bool EPconfigOK  = true;
 volatile int EPconfigAddress=0;
+
+/*
 struct StoreStruct {
 	char version[4];  //Config version number
-	unsigned long satForceSBDSessionInterval;
+	volatile unsigned long satDesiredSBDSessionInterval;
 	byte debuglevel;
-	bool pinExistsDSR, pinExistsRI, pinExistsNA, pinExistsPWR_EN;
-	byte i2cmyaddr, i2cuseraddr, operationMode;
-} prefs = {
+	bool pinExistsDSR, pinExistsRI, pinExistsNA, pinExistsPWR_EN, 
+	useInterruptPinRI, useInterruptPinNA;
+	byte i2cmyaddr, i2cuseraddr, operationMode, rebootCount;
+};
+*/
+struct StoreStruct prefs = {
 	EPCONFIG_VERSION,
 	(15UL * 60UL * 1000UL),
 	9,
 	false, false, false, false, 
-	0x08,0x05,1
+	false, false,
+	0x08,0x05,1,0
 };
 
 
@@ -63,7 +69,7 @@ volatile int NetworkAvailableJustChanged = 0;
 volatile int SatelliteNetworkAvailable = 0;
  // (ms) Force initiate SBD session after period of no activity, in minutes, the first number in parenthesis
  // Defaults to 15 minutes
-volatile unsigned long satForceSBDSessionInterval = (15UL * 60UL * 1000UL);
+unsigned long satForceSBDSessionInterval;
 volatile bool _DEBUG_MSG_ASCII = true;
 	
 // Declare an instance of the class
@@ -88,7 +94,7 @@ void setup()
    for(int i=2;i<53;i++){ 
     digitalWrite(i, LOW);
    } 
-   watchdogSetup();
+   watchdogSetup();	
 
   
 
@@ -117,6 +123,7 @@ wdtrst();
    cmdInit(115200);  //Initialize the Serial Commandline User Interface from cmdArduino library
    //Serial.print("Booting...\n");
    
+   
 
  
  
@@ -125,7 +132,7 @@ wdtrst();
   DebugMsg::msg_P("CC",'I',PSTR("Originally a White Star Balloon project by Dan Bowen, Bill Peipmeyer, and Chorgy"));
   DebugMsg::msg_P("CC",'I',PSTR("Currently maintained by Dan Bowen, dan@balloonconsulting.com"));
   cmdLineSetup();
-  
+  EPsettingsInit(); //Initialize Preference Settings
 //  DebugMsg::msg("CC",'I',"MSG %02d %02d %08d",30,40, 50);
 //  DebugMsg::msg("CC",'I',"MSG %02d",10);
 #if (__CUTDOWNENABLED__ == true)
@@ -157,6 +164,8 @@ int firstTime = true; //Watchdog Var
 
 void loop()
 {
+ while(1){};
+
   if (firstTime){
     firstTime = false;
 	DebugMsg::msg_P("CC",'D',PSTR("Starting main loop."));
@@ -381,16 +390,51 @@ void cmdLine_settings(int arg_count, char **args)  {
 }
 
 void EPsettingsInit() {
+	wdtrst();
+	byte LoadDefaultsFlag;
+	LoadDefaultsFlag = EEPROM.read(EPloadDefaultsFlagAddr);
+	wdtrst();	
 	EEPROM.setMemPool(memoryBase, E2END); //  Set memory range start and end, E2END is a define in io.h for the last EEPROM address
 	EPconfigAddress = EEPROM.getAddress(sizeof(StoreStruct));  //Size of prefs struct
+	wdtrst(); 
+	if (LoadDefaultsFlag) {  // Check to see if we need to initialize the EEPROM, set from prior boot
+		//savePrefsIfChanged();
+		DebugMsg::msg_P("EP", 'D', PSTR("initializing eeprom with prefs version: %s"), prefs.version);
+		EEPROM.updateBlock(EPconfigAddress,prefs);
+		delay(500);
+		EEPROM.readBlock(EPconfigAddress, prefs);
+		delay(500);
+		EEPROM.write(EPloadDefaultsFlagAddr, 0);  //Set flag for next boot to NOT load defaults
+		delay(500);
+		Serial.println(F("Prefs initialized into EEPROM."));
+	}
 	EPconfigOK = EPsettingsLoadConfig();
+	if (true == EPconfigOK){
+		Serial.println(F("Prefs loaded from EEPROM OK."));
+		}	else  {
+		Serial.println(F("Prefs EEPROM version mismatch, rebooting to set firmware defaults"));
+		EEPROM.write(EPloadDefaultsFlagAddr, 1);  //Set flag for next boot to load defaults
+		delay(500);
+		LoadDefaultsFlag = EEPROM.read(EPloadDefaultsFlagAddr);
+		delay(5000);
+		resetFunc();
+		}
+		
+		
 	}
 	
 bool EPsettingsLoadConfig() {
 	EEPROM.readBlock(EPconfigAddress, prefs);
-	return (prefs.version == EPCONFIG_VERSION);
+	delay(500);
+	bool result = ((prefs.version[0] == EPCONFIG_VERSION[0]) && (prefs.version[1] == EPCONFIG_VERSION[1] && (prefs.version[2] == EPCONFIG_VERSION[2])));
+    if (!result) {
+     DebugMsg::msg_P("EP", 'D', PSTR("EEPROM prefs version: %s, current firmware prefs version: %s"), prefs.version, EPCONFIG_VERSION);
+	}
+	return result;
 }
 
-void saveConfig() {
+// This function will read the eeprom settings and compare to ram settings
+//     It will only write bytes to EEPROM when they differ from the RAM bytes.
+void savePrefsIfChanged() {
 	EEPROM.updateBlock(EPconfigAddress, prefs);
 }
