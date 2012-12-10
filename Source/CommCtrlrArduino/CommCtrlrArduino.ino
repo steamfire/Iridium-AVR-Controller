@@ -39,7 +39,6 @@ unsigned long wdResetTime = 0;
 //These things should be later integrated properly VVVVV.
 volatile int NetworkAvailableJustChanged = 0;
 volatile int SatelliteNetworkAvailable = 0;
- 
  // (ms) Force initiate SBD session after period of no activity, in minutes, the first number in parenthesis
  // Defaults to 15 minutes
 volatile unsigned long satForceSBDSessionInterval = (15UL * 60UL * 1000UL);
@@ -217,7 +216,6 @@ void cmdLineSetup() {  // setup the available commandline commands
 //	cmdAdd("msg", cmdLine_msgSendText);
 	cmdAdd("msgb", cmdLine_msgSendBinary);
 	cmdAdd("settings", cmdLine_settings);
-	cmdAdd("rst", cmdLine_Reset);
 
 }
 
@@ -226,7 +224,6 @@ void cmdLine_help(int arg_count, char **args)  {
 	Serial.println(F("  help"));
 	Serial.println(F("  h"));
 	Serial.println(F("  ?"));
-	Serial.println(F("  rst  Resets the arduino"));
 //	Serial.println(F("  msg	[message text here up to 100 chars]"));
 //	Serial.println(F("       Loads specified text message into Iridium modem for transmit as plain text email."));
 //	Serial.println(F("       If no data is provided, it returns an error."));
@@ -326,11 +323,6 @@ void cmdLine_commControlCommand(int arg_count, char **args)  {
 	}
 
 
-}
-
-void cmdLine_Reset(int arg_count, char **args)  {
-	resetFunc(); //call reset
-	//Alternately let the watchdog timer timeout.
 }
 
 void cmdLine_settings(int arg_count, char **args)  {
