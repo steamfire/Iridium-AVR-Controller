@@ -46,7 +46,7 @@ bool Iridium9602::initModem()
 			//Wait for modem to be fully powered down - this is important delay!
 			{ //Delay without the delay command
 					unsigned long millistart = millis();
-					while ( millis() < millistart + 3000 ) {
+					while ( millis() < (millistart + SAT_POWER_OFF_MINIMUM_MILLIS) ) {
 					}
 			}
 			if (true == pinDSRisConnected){

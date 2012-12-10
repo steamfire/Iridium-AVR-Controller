@@ -49,7 +49,7 @@ Global Configuration Information
  #define pinDSRisConnected false 					//Rockblock does not provide this pin, set it to FALSE if using RockBlock
  #define pinModemPowerSwitchisConnected true  		//not yet paid attention to
 
-//Cutdown enable
+//Cutdown enable/disable
 
 #define __CUTDOWNENABLED__ false
 
@@ -69,7 +69,6 @@ const byte i2ceePROMAddr          = 0x50;           // EEPROM I2C Address
  *******************************/
 const byte satMinimumSignalRequired = 2;			//Minimum signal bars number required to do a normal SBD session - a Forced session will ignore this.
 const byte satIncomingPackLenLimit = 70;             //Used to define length of buffer arrays for packet data
-const unsigned int satPowerOffMinimumTime = 2000;    //Probably 2000 millis for iridium
 const unsigned int maxTelemLenConst = 340;          //Maximum acceptable length of telemetry packet FROM EEPROM, set by Iridium MO max message size
 #define satNetworkNotAvailable = 255;
 const int LongMsgQueueLen = 20;             // Number of messages that can be in the queue to send out sat modem
