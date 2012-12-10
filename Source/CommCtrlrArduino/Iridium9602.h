@@ -10,9 +10,7 @@
 #include <string.h>
 
 #define MAX_RECV_BUFFER 100
-#define SAT_POWER_OFF_MINIMUM_MILLIS 2000;    //Probably 2000 millis for iridium
-
-
+#define SAT_POWER_OFF_MINIMUM_MILLIS 2000    //Probably 2000 millis for iridium
 
 class Iridium9602
 {
