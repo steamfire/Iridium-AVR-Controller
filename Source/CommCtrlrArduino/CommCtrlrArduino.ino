@@ -238,6 +238,8 @@ void cmdLineSetup() {  // setup the available commandline commands
 	cmdAdd("h", cmdLine_help);
 	cmdAdd("?", cmdLine_help);
 	cmdAdd("ccc", cmdLine_commControlCommand);
+	cmdAdd("off", cmdLine_modemOff);
+	cmdAdd("on", cmdLine_modemOn);
 	cmdAdd("ir", cmdLine_iridiumATCommand);
 //	cmdAdd("msg", cmdLine_msgSendText);
 	cmdAdd("msgb", cmdLine_msgSendBinary);
@@ -252,6 +254,10 @@ void cmdLine_help(int arg_count, char **args)  {
 	Serial.println(F("  h"));
 	Serial.println(F("  ?"));
 	Serial.println(F("  rst  Resets the arduino"));
+
+	Serial.println(F("  off  Turns the Iridium modem off"));
+
+	Serial.println(F("  on   Turns the Iridium modem on"));
 //	Serial.println(F("  msg	[message text here up to 100 chars]"));
 //	Serial.println(F("       Loads specified text message into Iridium modem for transmit as plain text email."));
 //	Serial.println(F("       If no data is provided, it returns an error."));
@@ -352,6 +358,16 @@ void cmdLine_commControlCommand(int arg_count, char **args)  {
 
 
 }
+
+void cmdLine_modemOff(int arg_count, char **args)  {
+	satCommMgr.turnModemOff();
+}
+
+void cmdLine_modemOn(int arg_count, char **args)  {
+	satCommMgr.turnModemOn();
+}
+
+
 
 void cmdLine_Reset(int arg_count, char **args)  {
 	resetFunc(); //call reset
