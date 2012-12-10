@@ -1,6 +1,6 @@
 /*
 Hardware required: 
-	Arduino MEGA 2560 (tested on r3)
+	Arduino(or clone) MEGA 1280 or MEGA 2560
 	I2C EEPROM
 	Iridium 9602 Modem
 	Appropriate power circuitry for 9602 (seriously rigid power requirements)
