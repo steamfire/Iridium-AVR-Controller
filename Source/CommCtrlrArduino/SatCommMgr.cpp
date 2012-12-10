@@ -49,7 +49,7 @@ void SatCommMgr::satCommInit(I2CCommMgr * i2cCommMgr)
         } else {
         	DebugMsg::msg_P("SAT",'E',PSTR("SatModem Init FAILED."));
         }
-#if 1
+#if 0
     if (true == satModemAlive) {
 		snprintf((char *)sbuf, 10, "hello upu");
 		if (true == _satModem.loadMOMessage((unsigned char *)sbuf,10)) {
