@@ -37,6 +37,27 @@ This software is licensed under the terms of the MIT license.  See LICENSE.txt f
 #include <Cmd.h>
 
 unsigned long wdResetTime = 0;
+
+//********
+//EEPROM config variables
+//********
+volatile bool EPconfigOK  = true;
+volatile int EPconfigAddress=0;
+struct StoreStruct {
+	char version[4];  //Config version number
+	unsigned long satForceSBDSessionInterval;
+	byte debuglevel;
+	bool pinExistsDSR, pinExistsRI, pinExistsNA, pinExistsPWR_EN;
+	byte i2cmyaddr, i2cuseraddr, operationMode;
+} prefs = {
+	EPCONFIG_VERSION,
+	(15UL * 60UL * 1000UL),
+	9,
+	false, false, false, false, 
+	0x08,0x05,1
+};
+
+
 //These things should be later integrated properly VVVVV.
 volatile int NetworkAvailableJustChanged = 0;
 volatile int SatelliteNetworkAvailable = 0;
@@ -341,4 +362,19 @@ void cmdLine_settings(int arg_count, char **args)  {
 	
 
 
+}
+
+void EPsettingsInit() {
+	EEPROM.setMemPool(memoryBase, E2END); //  Set memory range start and end, E2END is a define in io.h for the last EEPROM address
+	EPconfigAddress = EEPROM.getAddress(sizeof(StoreStruct));  //Size of prefs struct
+	EPconfigOK = EPsettingsLoadConfig();
+	}
+	
+bool EPsettingsLoadConfig() {
+	EEPROM.readBlock(EPconfigAddress, prefs);
+	return (prefs.version == EPCONFIG_VERSION);
+}
+
+void saveConfig() {
+	EEPROM.updateBlock(EPconfigAddress, prefs);
 }

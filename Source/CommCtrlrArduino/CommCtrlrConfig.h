@@ -123,8 +123,11 @@ const int EPLOCAtcReportPairArray = 12;
 const int EPLOCI2CRebootCount = 100;
 const int EPLOCLastMaxSBDDelayStart = 101;
 
-
-
+/*******************************
+ *   Internal EEPROM Allocation       *
+ *******************************/
+#define EPCONFIG_VERSION "aaa"      // ID of the settings block
+#define memoryBase 127		       // Tell it where to store your config data in EEPROM
 
 #endif
 
