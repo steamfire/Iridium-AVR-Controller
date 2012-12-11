@@ -164,8 +164,6 @@ int firstTime = true; //Watchdog Var
 
 void loop()
 {
- while(1){};
-
   if (firstTime){
     firstTime = false;
 	DebugMsg::msg_P("CC",'D',PSTR("Starting main loop."));
@@ -398,26 +396,26 @@ void EPsettingsInit() {
 	EPconfigAddress = EEPROM.getAddress(sizeof(StoreStruct));  //Size of prefs struct
 	wdtrst(); 
 	if (LoadDefaultsFlag) {  // Check to see if we need to initialize the EEPROM, set from prior boot
-		//savePrefsIfChanged();
-		DebugMsg::msg_P("EP", 'D', PSTR("initializing eeprom with prefs version: %s"), prefs.version);
+		DebugMsg::msg_P("EP", 'D', PSTR("Default prefs version: %s"), prefs.version);
 		EEPROM.updateBlock(EPconfigAddress,prefs);
-		delay(500);
-		EEPROM.readBlock(EPconfigAddress, prefs);
-		delay(500);
+		wdtrst();
+		while(!EEPROM.isReady());
 		EEPROM.write(EPloadDefaultsFlagAddr, 0);  //Set flag for next boot to NOT load defaults
-		delay(500);
-		Serial.println(F("Prefs initialized into EEPROM."));
+		while(!EEPROM.isReady());
+     DebugMsg::msg_P("EP", 'I', PSTR("Pref defaults saved into EEPROM."));
 	}
 	EPconfigOK = EPsettingsLoadConfig();
 	if (true == EPconfigOK){
-		Serial.println(F("Prefs loaded from EEPROM OK."));
+     DebugMsg::msg_P("EP", 'I', PSTR("Prefs loaded."));
+		wdtrst();
 		}	else  {
-		Serial.println(F("Prefs EEPROM version mismatch, rebooting to set firmware defaults"));
+		wdtrst();
+     DebugMsg::msg_P("EP", 'I', PSTR("Prefs in RAM/EEPROM version mismatch, rebooting to set firmware defaults"));
 		EEPROM.write(EPloadDefaultsFlagAddr, 1);  //Set flag for next boot to load defaults
-		delay(500);
-		LoadDefaultsFlag = EEPROM.read(EPloadDefaultsFlagAddr);
-		delay(5000);
-		resetFunc();
+		//while(!isReady());  //wait till the eeprom finishes.
+		//LoadDefaultsFlag = EEPROM.read(EPloadDefaultsFlagAddr);
+		while(!EEPROM.isReady());
+		resetFunc();  //reboot the chip.
 		}
 		
 		
@@ -425,7 +423,7 @@ void EPsettingsInit() {
 	
 bool EPsettingsLoadConfig() {
 	EEPROM.readBlock(EPconfigAddress, prefs);
-	delay(500);
+	while(!EEPROM.isReady());
 	bool result = ((prefs.version[0] == EPCONFIG_VERSION[0]) && (prefs.version[1] == EPCONFIG_VERSION[1] && (prefs.version[2] == EPCONFIG_VERSION[2])));
     if (!result) {
      DebugMsg::msg_P("EP", 'D', PSTR("EEPROM prefs version: %s, current firmware prefs version: %s"), prefs.version, EPCONFIG_VERSION);
