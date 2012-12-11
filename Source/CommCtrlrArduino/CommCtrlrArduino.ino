@@ -153,8 +153,7 @@ wdtrst();
 
   DebugMsg::msg_P("CC",'I',PSTR("CommCtrlr Boot Finished."));
   
-    DebugMsg::msg_P("CC",'I',PSTR("Interactive commandline parser enabled. Use CR ONLY for line endings.\n\n\n"));
-    
+
 	cmdLine_help(0,0);
     
 
@@ -252,7 +251,8 @@ void cmdLineSetup() {  // setup the available commandline commands
 	cmdAdd("msgb", cmdLine_msgSendBinary);
 	cmdAdd("rst", cmdLine_Reset);
 	cmdAdd("settings", cmdLine_settings);
-
+    DebugMsg::msg_P("CM",'I',PSTR("Interactive. Use CR ONLY for line ends. ? for help.\n\n\n"));
+    
 }
 
 void cmdLine_help(int arg_count, char **args)  {
@@ -271,6 +271,7 @@ void cmdLine_help(int arg_count, char **args)  {
 	Serial.println(F("  msgb [message binary here up to 100 bytes]"));
 	Serial.println(F("       Loads specified binary (or ASCII) data into Iridium modem for transmit as binary email attachment."));
 	Serial.println(F("       If no message provided, sends 'Hello World'"));
+	Serial.println(F("  settings                         Display/edit preferences"));
 	Serial.println(F("  ir [AT command here]"));
 	Serial.println(F("       Issues direct command to Iridium modem, freeform text. Debug must be on to see responses"));
 	Serial.println(F("       Useful AT commands:"));
@@ -284,17 +285,7 @@ void cmdLine_help(int arg_count, char **args)  {
 	Serial.println(F("             These functions are taken care of automatically by the WSB CommController code."));
 /*
 	Serial.println(F("  ccc [0x00-0xFF]                  Test comm control commands, as used on I2C bus or uplink messsages. Hex data format."));
-	Serial.println(F("  settings                         Displays All Settings"));
-	Serial.println(F("  settings debuglevel [0]          0 = no output 9 = lots of output"));
-	Serial.println(F("  settings pinexists [DSR | RI | NA | PWR_EN] [true | false]"));
-	Serial.println(F("		 Specify which pins on the Iridium Modem are connected to arduino.  true = connected, false = not connected"));	
-	Serial.println(F("  settings sbdcheckinterval [0 | 60-2147483 seconds]"));           
-	Serial.println(F("       If no SBD sessions are requested by user or satellite, after this much time has passed, a session will be requested."));
-	Serial.println(F("       This time interval is slightly randomized every time to comply with Iridium traffic rules."));
-	Serial.println(F("  settings i2cmyaddr [0x00-0xFF]     Set I2C self address of this arduino comm controller.
-	Serial.println(F("  settings i2cfcaddr [0x00-0xFF]     Set I2C  address of the flight computer.	
-	Serial.println(F("  settings deviceexists [CDN | FC] [true | false]"));
-	Serial.println(F("       Indicate which devices are connected.  It won't try to communicate with devices that aren't there."));	
+
 */
 
 	
@@ -382,7 +373,40 @@ void cmdLine_Reset(int arg_count, char **args)  {
 }
 
 void cmdLine_settings(int arg_count, char **args)  {
+	switch (arg_count) {
+	case 1:  //only the 'settings' term used, no other args
+			// Print settings help out
+//	Serial.println(F("  settings debuglevel [0]          0 = no output 9 = lots of output"));
+	Serial.println(F("  settings pinexists [DSR | RI | NA | PWR_EN] [true | false]"));
+	Serial.println(F("		 Specify which pins on the Iridium Modem are connected to arduino.  true = connected, false = not connected"));	
+	Serial.println(F("  settings idlecheck [0 | 60-2147483 seconds]"));           
+	Serial.println(F("       How long to wait between checking Iridium gateway for messages"));
+	Serial.println(F("       This time interval is slightly randomized every time to comply with Iridium traffic rules."));
+	Serial.println(F("  settings i2cmyaddr [0x00-0xFF]     Set I2C self address of this arduino comm controller."));
+	Serial.println(F("  settings i2cfcaddr [0x00-0xFF]     Set I2C  address of the flight computer.	"));
+//	Serial.println(F("  settings deviceexists [CDN | FC] [true | false]"));
+//	Serial.println(F("       Indicate which devices are connected.  It won't try to communicate with devices that aren't there."));	
 	
+  DebugMsg::msg_P("CM",'I',PSTR("     settings"));
+  DebugMsg::msg_P("CM",'I',PSTR("              idlecheck %d"),prefs.satDesiredSBDSessionInterval); 
+  DebugMsg::msg_P("CM",'I',PSTR("              pinexists")); 
+  DebugMsg::msg_P("CM",'I',PSTR("                        DSR %s"),(prefs.pinExistsDSR)?"true":"false");     
+  DebugMsg::msg_P("CM",'I',PSTR("                        RI %s"),(prefs.pinExistsRI)?"true":"false"); 
+  DebugMsg::msg_P("CM",'I',PSTR("                        NA %s"),(prefs.pinExistsNA)?"true":"false"); 
+  DebugMsg::msg_P("CM",'I',PSTR("                        PWR_EN %s"),(prefs.pinExistsPWR_EN)?"true":"false");
+  DebugMsg::msg_P("CM",'I',PSTR("              i2cmyaddr %x"),prefs.i2cmyaddr);  
+  DebugMsg::msg_P("CM",'I',PSTR("              i2cuseraddr %x"),prefs.i2cuseraddr);          
+    
+			break;
+	case 2:
+			break;
+	case 3:
+	
+	
+			break;
+	default:
+	;
+	}
 
 
 }
