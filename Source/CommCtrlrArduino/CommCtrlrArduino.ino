@@ -48,18 +48,16 @@ volatile int EPconfigAddress=0;
 struct StoreStruct {
 	char version[4];  //Config version number
 	volatile unsigned int satDesiredSBDSessionInterval;
-	byte debuglevel;
-	bool pinExistsDSR, pinExistsRI, pinExistsNA, pinExistsPWR_EN, 
-	useInterruptPinRI, useInterruptPinNA;
-	byte i2cmyaddr, i2cuseraddr, operationMode, rebootCount, satMinimumSignalRequired;
+	byte debuglevel, 
+	pinDSR, pinRI, pinNA, pinModemPowerSwitch, 
+	i2cmyaddr, i2cuseraddr, operationMode, rebootCount, satMinimumSignalRequired;
 };
 */
 struct StoreStruct prefs = {
 	EPCONFIG_VERSION,
 	1800,
 	9,
-	false, false, false, false, 
-	false, false,
+    0,0,0,4,
 	0x08,0x05,1,0,2
 };
 
@@ -114,8 +112,10 @@ void setup()
    digitalWrite(A0, LOW);
   
    //Turn Iridium 9602 modem off
-   pinMode(pinModemPowerSwitch, OUTPUT);
-   digitalWrite(pinModemPowerSwitch, LOW);
+if (prefs.pinModemPowerSwitch) {
+   pinMode(prefs.pinModemPowerSwitch, OUTPUT);
+   digitalWrite(prefs.pinModemPowerSwitch, LOW);
+   }
 
 wdtrst();	
    IRIDIUM_SERIAL_PORT.begin(19200);  //Sat Modem Port

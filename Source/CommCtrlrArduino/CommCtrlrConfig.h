@@ -32,22 +32,13 @@ Global Configuration Information
 /*******************************
  *    Pin declarations         *
  *******************************/
-#define pinRI 2  // Not used in code yet
-#define pinNA 3  
-#define pinDSR 6  
-#define pinModemPowerSwitch 4
+//#define pinRI 2  // Not used in code yet
+//#define pinNA 3  
+//#define pinDSR 6  
+//#define pinModemPowerSwitch 4
 #define pinBrownout 5
 //define pinVoltageMeasure A0
 
-/*******************************
- *    Connected Iridium Modem Pins  *
- *	   Set each to TRUE if it's connected, FALSE if not  *
- *******************************/
- 
- #define pinRIisConnected false						//not yet paid attention to
- #define pinNAisConnected true   					//not yet paid attention to
- #define pinDSRisConnected false 					//Rockblock does not provide this pin, set it to FALSE if using RockBlock
- #define pinModemPowerSwitchisConnected true  		//not yet paid attention to
 
 //Cutdown enable/disable
 
