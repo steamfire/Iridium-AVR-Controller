@@ -201,8 +201,8 @@ void Iridium9602::parseUnsolicitedResponse(char * cmd)
                 //DebugMsg::msg_P("SAT", 'D', PSTR("Match SBDIX"));
                 int mo_st = -1, mt_st, mt_len, mt_q;
                 if (parseSBDIXResponse(_receivedCmd, &mo_st, &mt_st, &mt_len, &mt_q)) {
-                    DebugMsg::msg_P("Sat", 'D', PSTR("Got good +SBDIX respponse"));
-                    DebugMsg::msg_P("Sat", 'D', PSTR("  mo_st: %d mt_st: %d mt_len: %d mt_queue: %d"),
+                    DebugMsg::msg_P("Sat", 'D', PSTR("SBD Session Complete:"));
+                    DebugMsg::msg_P("Sat", 'D', PSTR("  Msg Out Status: %d, Msg Out ID#: %d, Msg In Length: %d, Msgs Waiting @gtwy: %d"),
                                     mo_st, mt_st, mt_len, mt_q);
                     wdtrst();
                     if (mt_st == 1) {  // Received message OK if 1
@@ -284,7 +284,7 @@ bool Iridium9602::expectLoop(const void * response,
                 if (to == 0) to = 1; // use 1 ms  ---- FIXME  - this looks like bad code!
 
 #if 0
-                DebugMsg::msg_P("SAT", 'I', PSTR("%s: timeout: %d to: %d st: %d ml: %d"), 
+                DebugMsg::msg_P("SAT", 'D', PSTR("%s: timeout: %d to: %d st: %d ml: %d"), 
                                 __func__, timeout, to, starttime, millis());
 #endif
                 if (!checkIncomingCRLF(to)) {

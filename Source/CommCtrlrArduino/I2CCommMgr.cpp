@@ -175,6 +175,7 @@ void I2CCommMgr::i2cInit()
 {
   wdtrst();
   Wire.begin(prefs.i2cmyaddr);                                   // Join I2C Bus as slave
+  //FIXME remove this stuff vvvv
 #define TWI_FREQ_WSBFAST 400000UL
 #ifndef CPU_FREQ
 #define CPU_FREQ = 16000000UL

@@ -186,7 +186,7 @@ void SatCommMgr::update(void)
                 if (sz > 0) {
                         parseIncommingMsg(uplinkMsg, sz);
                 } else {
-                        DebugMsg::msg_P("CC", 'D', PSTR("loadMTMessage() returned = %d"), sz);
+                        DebugMsg::msg_P("CC", 'E', PSTR("loadMTMessage() returned = %d"), sz);
                 }
         }
 		wdtrst();
