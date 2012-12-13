@@ -67,6 +67,7 @@ const byte i2ceePROMAddr          = 0x50;           // EEPROM I2C Address
 /*******************************
  *     Constants for Sat Modem *
  *******************************/
+const unsigned int satdesiredRandomRangeSecs = 60;  //default number of seconds to randomize the message check delay by
 const byte satMinimumSignalRequired = 2;			//Minimum signal bars number required to do a normal SBD session - a Forced session will ignore this.
 const byte satIncomingPackLenLimit = 70;             //Used to define length of buffer arrays for packet data
 const unsigned int maxTelemLenConst = 340;          //Maximum acceptable length of telemetry packet FROM EEPROM, set by Iridium MO max message size
@@ -114,16 +115,16 @@ const byte i2cRebootCountMax = 5;
  *   Internal EEPROM Allocation       *
  *******************************/
 const int EPloadDefaultsFlagAddr = 1;  //If content at this byte is non-zero it will load defaults into eeprom
-#define EPCONFIG_VERSION "aah"      // ID of the settings block
+#define EPCONFIG_VERSION "aal"      // ID of the settings block
 #define memoryBase 10		       // Tell it where to store your config data in EEPROM
 
 struct StoreStruct {
 	char version[4];  //Config version number
-	volatile unsigned long satDesiredSBDSessionInterval;
+	volatile unsigned int satDesiredSBDSessionInterval;
 	byte debuglevel;
 	bool pinExistsDSR, pinExistsRI, pinExistsNA, pinExistsPWR_EN, 
 	useInterruptPinRI, useInterruptPinNA;
-	byte i2cmyaddr, i2cuseraddr, operationMode, rebootCount;
+	byte i2cmyaddr, i2cuseraddr, operationMode, rebootCount, satMinimumSignalRequired;
 };
 
 #endif

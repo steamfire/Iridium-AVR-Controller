@@ -33,7 +33,8 @@ public:
         void turnModemOff();
         bool initiate_session;
         bool satModemAlive;
-        void randomizeMessageCheckInterval(unsigned long);
+        unsigned int desiredRandomRangeSecs;
+        void randomizeMessageCheckInterval();
 
         
 		

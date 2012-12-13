@@ -30,6 +30,7 @@ void SatCommMgr::satCommInit(I2CCommMgr * i2cCommMgr)
 {
         DebugMsg::msg_P("SAT",'D',PSTR("SatModem Init Start..."));
         wdtrst();
+        desiredRandomRangeSecs = satdesiredRandomRangeSecs; //initialize randomization time range
         satModemAlive = _satModem.initModem();
         wdtrst();
         if(true == satModemAlive) {
@@ -37,7 +38,7 @@ void SatCommMgr::satCommInit(I2CCommMgr * i2cCommMgr)
         	initiate_session = true;
         	_i2cCommMgr = i2cCommMgr;
         	wdtrst();
-        	randomizeMessageCheckInterval(satSBDIntervalRandomizePlusMinusMillis);
+        	randomizeMessageCheckInterval();
         	DebugMsg::msg_P("SAT",'I',PSTR("SatModem Init Completed."));
         } else {
         	DebugMsg::msg_P("SAT",'E',PSTR("SatModem Init FAILED."));
@@ -55,16 +56,16 @@ void SatCommMgr::satCommInit(I2CCommMgr * i2cCommMgr)
 
 }
 
-void SatCommMgr::randomizeMessageCheckInterval(unsigned long desiredRandomRangeMillis) {
+void SatCommMgr::randomizeMessageCheckInterval() {
 	          	//Slightly randomize the delay between SBD checks
   			randomSeed(analogRead(10));
-  			satForceSBDSessionInterval = (random(desiredRandomRangeMillis)-random(desiredRandomRangeMillis)) + prefs.satDesiredSBDSessionInterval;
+  			satForceSBDSessionInterval = (unsigned long)(random(desiredRandomRangeSecs)-random((desiredRandomRangeSecs)) + prefs.satDesiredSBDSessionInterval);
   			Serial.print(F("SetMaxSBDInterval randomized to: "));
   			Serial.print(satForceSBDSessionInterval,DEC);
   			Serial.print(F(" (m:s): "));
-			Serial.print((satForceSBDSessionInterval/60000),DEC);
+			Serial.print((satForceSBDSessionInterval/60),DEC);
 			Serial.print(":");
-			Serial.println((satForceSBDSessionInterval%60000)/1000,DEC);
+			Serial.println((satForceSBDSessionInterval%60),DEC);
 }
 
 
@@ -114,7 +115,7 @@ void SatCommMgr::update(void)
                         //DebugMsg::msg_P("CC", 'D', PSTR("checking for time out"));
                         if (millis() - _lastSessionTime > _randomizedRetryTime) 
                         {
-                        	if (_satModem.checkSignal() >= satMinimumSignalRequired)
+                        	if (_satModem.checkSignal() >= prefs.satMinimumSignalRequired)
                 			{
 #if 0			
                                 DebugMsg::msg_P("CC", 'D', PSTR("[%d] = %lu --  %lu ms timeout hit"), 
@@ -141,7 +142,7 @@ void SatCommMgr::update(void)
                                 initiate_session = true;
                         	} else 
                         	{
-                        		DebugMsg::msg_P("CC", 'D', PSTR("I want to initiate SBD session, but signal level of %d is less than %d"),_satModem.getLatestSignal(),satMinimumSignalRequired);
+                        		DebugMsg::msg_P("CC", 'D', PSTR("I want to initiate SBD session, but signal level of %d is less than %d"),_satModem.getLatestSignal(),prefs.satMinimumSignalRequired);
                         	}
                     	}
                 }

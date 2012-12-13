@@ -47,20 +47,20 @@ volatile int EPconfigAddress=0;
 /*
 struct StoreStruct {
 	char version[4];  //Config version number
-	volatile unsigned long satDesiredSBDSessionInterval;
+	volatile unsigned int satDesiredSBDSessionInterval;
 	byte debuglevel;
 	bool pinExistsDSR, pinExistsRI, pinExistsNA, pinExistsPWR_EN, 
 	useInterruptPinRI, useInterruptPinNA;
-	byte i2cmyaddr, i2cuseraddr, operationMode, rebootCount;
+	byte i2cmyaddr, i2cuseraddr, operationMode, rebootCount, satMinimumSignalRequired;
 };
 */
 struct StoreStruct prefs = {
 	EPCONFIG_VERSION,
-	(15UL * 60UL * 1000UL),
+	1800,
 	9,
 	false, false, false, false, 
 	false, false,
-	0x08,0x05,1,0
+	0x08,0x05,1,0,2
 };
 
 
