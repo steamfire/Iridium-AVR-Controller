@@ -17,6 +17,7 @@
 /* from CommCtrlArduino.ino */
 void initIridiumNetworkInterrupt();
 
+extern struct StoreStruct prefs;
 extern volatile int NetworkAvailableJustChanged;
 extern volatile int SatelliteNetworkAvailable;
 extern volatile bool _DEBUG_MSG_ASCII;
@@ -40,8 +41,11 @@ bool Iridium9602::initModem()
         modemAlive = false;
         
         while(false == modemAlive) {  // stay in this loop until the modem wakes up.  make more elegant later FIXME
+        	// Check to see if the PowerSwitch pin has been defined to a number greater than 0
+        	//   If not defined, just skip trying to turn it on and off.
+        	if(prefs.pinModemPowerSwitch){  
 			//Turn Iridium 9602 modem off
-			digitalWrite(pinModemPowerSwitch, LOW);
+				digitalWrite(prefs.pinModemPowerSwitch, LOW);
 			Serial.println(F("Iridium9602 turned off..."));
 			//Wait for modem to be fully powered down - this is important delay!
 			{ //Delay without the delay command
@@ -49,8 +53,8 @@ bool Iridium9602::initModem()
 					while ( millis() < (millistart + SAT_POWER_OFF_MINIMUM_MILLIS) ) {
 					}
 			}
-			if (true == pinDSRisConnected){
-					if (HIGH == digitalRead(pinDSR)) {
+				if (prefs.pinDSR){
+						if (HIGH == digitalRead(prefs.pinDSR)) {
 							DebugMsg::msg_P("SAT",'D',PSTR("DSR HIGH."));
 					} else {
 							DebugMsg::msg_P("SAT",'D',PSTR("DSR LOW"));
@@ -61,15 +65,16 @@ bool Iridium9602::initModem()
 			//Turn modem on
 			Serial.println(F("Turning Sat Modem On... "));
 			Serial.flush();
-			digitalWrite(pinModemPowerSwitch, HIGH);
-			if (true == pinDSRisConnected){
+				digitalWrite(prefs.pinModemPowerSwitch, HIGH);
+			}
+			if (prefs.pinDSR){  //Check for pin DSR being defined as greater than 0, meaning it's connected.
 				//Check for DSR line going high to indicate boot has finished
 				{ 
 						unsigned long millistart = millis();
 						
 						while ( (millis() < (millistart + 10000)) ) //Delay without the delay command
 						{
-								if (HIGH == digitalRead(pinDSR)) 
+								if (HIGH == digitalRead(prefs.pinDSR)) 
 								{	
 										DebugMsg::msg_P("SAT", 'I', PSTR("Modem Power On Detected. (DSR HIGH)"));
 										modemAlive = true;
@@ -581,7 +586,7 @@ void Iridium9602::powerOff(void)
 {
         sendCommandandExpectPrefix(F("AT*F"), F("OK"), satResponseTimeout);      //Make sat modem prepare for poweroff
         //Wait until OK for up to 10 seconds
-        digitalWrite(pinModemPowerSwitch,LOW);  //Power modem off.
+        digitalWrite(prefs.pinModemPowerSwitch,LOW);  //Power modem off.
 }
 
 void Iridium9602::powerOn(void)
@@ -592,7 +597,7 @@ void Iridium9602::powerOn(void)
 bool Iridium9602::isModemOn(void)
 {
 		
-        if (digitalRead(pinDSR) == LOW)  //Low == 9602 is powered on
+        if (digitalRead(prefs.pinDSR) == LOW)  //Low == 9602 is powered on
         {
                 return true;
         }

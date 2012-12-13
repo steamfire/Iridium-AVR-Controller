@@ -115,16 +115,15 @@ const byte i2cRebootCountMax = 5;
  *   Internal EEPROM Allocation       *
  *******************************/
 const int EPloadDefaultsFlagAddr = 1;  //If content at this byte is non-zero it will load defaults into eeprom
-#define EPCONFIG_VERSION "aal"      // ID of the settings block
+#define EPCONFIG_VERSION "aam"      // ID of the settings block
 #define memoryBase 10		       // Tell it where to store your config data in EEPROM
 
 struct StoreStruct {
 	char version[4];  //Config version number
 	volatile unsigned int satDesiredSBDSessionInterval;
-	byte debuglevel;
-	bool pinExistsDSR, pinExistsRI, pinExistsNA, pinExistsPWR_EN, 
-	useInterruptPinRI, useInterruptPinNA;
-	byte i2cmyaddr, i2cuseraddr, operationMode, rebootCount, satMinimumSignalRequired;
+	byte debuglevel, 
+	pinDSR, pinRI, pinNA, pinModemPowerSwitch, 
+	i2cmyaddr, i2cuseraddr, operationMode, rebootCount, satMinimumSignalRequired;
 };
 
 #endif
