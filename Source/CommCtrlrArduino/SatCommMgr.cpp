@@ -73,6 +73,7 @@ void SatCommMgr::update(void)
 {
         
         unsigned char uplinkMsg[10];
+        byte sigcheck;
 		wdtrst();
 #if 1
         static unsigned long _last_tick = millis();
@@ -115,13 +116,16 @@ void SatCommMgr::update(void)
                         //DebugMsg::msg_P("CC", 'D', PSTR("checking for time out"));
                         if (millis() - _lastSessionTime > _randomizedRetryTime) 
                         {
-                        	if (_satModem.checkSignal() >= prefs.satMinimumSignalRequired)
+                        	sigcheck = _satModem.checkSignal();
+                        	if (sigcheck >= prefs.satMinimumSignalRequired)
                 			{
 #if 0			
-                                DebugMsg::msg_P("CC", 'D', PSTR("[%d] = %lu --  %lu ms timeout hit"), 
+                                DebugMsg::msg_P("SC", 'D', PSTR("[%d] = %lu --  %lu ms timeout hit, checkSignal: %d, MinSignal: %d"), 
                                                 _retryTimeIdx,
                                                 _randomizedRetryTime,
-                                                millis() - _lastSessionTime);
+                                                millis() - _lastSessionTime,
+                                                sigcheck,
+                                                prefs.satMinimumSignalRequired);
 #endif
                                 /* don't let _retryTimeIdx go past the end of the array */
                                 if (_retryTimeIdx + 1 < retry_timeouts_sz) {
@@ -154,8 +158,8 @@ void SatCommMgr::update(void)
                         _lastSessionTime = millis();
                 }
 				
-#if 0
-                DebugMsg::msg_P("CC", 'D', PSTR("is: %d sa: %d, lst: %lu to: %lu tl: %lu ms: %lu"),
+#if 1
+                DebugMsg::msg_P("CC", 'D', PSTR("is: %d sa: %d, lst: %lu rretrTime: %lu : %lu millis: %lu"),
                                 initiate_session, 
                                 _satModem.isSessionActive(),
                                 _lastSessionTime,
