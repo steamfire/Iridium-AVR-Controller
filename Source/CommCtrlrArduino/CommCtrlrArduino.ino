@@ -261,13 +261,12 @@ void cmdLine_help(int arg_count, char **args)  {
 	Serial.println(F("  h"));
 	Serial.println(F("  ?"));
 	Serial.println(F("  rst  Resets the arduino"));
-
 	Serial.println(F("  off  Turns the Iridium modem off"));
-
 	Serial.println(F("  on   Turns the Iridium modem on"));
 //	Serial.println(F("  msg	[message text here up to 100 chars]"));
 //	Serial.println(F("       Loads specified text message into Iridium modem for transmit as plain text email."));
 //	Serial.println(F("       If no data is provided, it returns an error."));
+    Serial.println(F("  chk  Manually initiate an SBD Message Transfer Session (Send Queued + Mailbox Check)"));
 	Serial.println(F("  msgb [message binary here up to 100 bytes]"));
 	Serial.println(F("       Loads specified binary (or ASCII) data into Iridium modem for transmit as binary email attachment."));
 	Serial.println(F("       If no message provided, sends 'Hello World'"));
@@ -373,8 +372,72 @@ void cmdLine_Reset(int arg_count, char **args)  {
 }
 
 void cmdLine_settings(int arg_count, char **args)  {
-	switch (arg_count) {
-	case 1:  //only the 'settings' term used, no other args
+    unsigned int resultUInt;
+    byte resultByte;
+    unsigned long resultULong;
+
+	switch (arg_count) {  // Number of space-separated arguments on commandline.
+	case 1:  // settings
+            cmd_settingsHelp();
+			break;
+	case 2: // settings xxxx
+		    cmd_settingsHelp();
+			break;
+	case 3: // settings xxxx xxxx
+			if(0 == (strcmp(args[1],"idlecheck"))){
+			    resultUInt = cmdStr2Num(args[2], 10);
+			    DebugMsg::msg_P("CM",'I',PSTR("Previous value: %d   Changed to: %d"),prefs.satDesiredSBDSessionInterval,resultUInt);
+			    prefs.satDesiredSBDSessionInterval = resultUInt;
+			    savePrefsIfChanged();
+			    satCommMgr.randomizeMessageCheckInterval();  //slightly randomize and copy the value for active use
+			}  else if(0 == strcmp(args[1],"i2cmyaddr")){
+			    resultULong = strtoul(args[2], NULL, 16);
+			    if((0 == resultULong) || (-1 == resultULong)) {
+			    // strtoul will return 0 or 0-1 for out of range inputs
+			    DebugMsg::msg_P("CM",'I',PSTR("Incorrect number format. Use 1 or 2 hex digits preceded by 0x \n for example: 0x5E or 0x2"));
+			    } else {
+			    DebugMsg::msg_P("CM",'I',PSTR("Previous value : %x  Changed to: %x "),prefs.i2cmyaddr,resultULong);
+			    prefs.i2cmyaddr = (byte)resultULong;
+			    savePrefsIfChanged();
+			    i2cCommMgr.i2cInit();  // reinitialize the I2C perhipheral
+			    }
+			}  else if(0 == strcmp(args[1],"i2cuseraddr")){
+			    resultULong = strtoul(args[2], NULL, 16);
+			    if((0 == resultULong) || (-1 == resultULong)) {
+			    // strtoul will return 0 or 0-1 for out of range inputs
+			    DebugMsg::msg_P("CM",'I',PSTR("Incorrect number format. Use 1 or 2 hex digits preceded by 0x \n for example: 0x5E or 0x2"));
+			    } else {
+			    DebugMsg::msg_P("CM",'I',PSTR("Previous value : %x  Changed to: %x "),prefs.i2cuseraddr,resultULong);
+			    prefs.i2cuseraddr = (byte)resultULong;
+			    savePrefsIfChanged();
+			    }
+			} else if(0 == (strcmp(args[1],"minsignal"))){
+			    resultUInt = cmdStr2Num(args[2], 9);
+			    if (resultUInt <= 5) {
+			        DebugMsg::msg_P("CM",'I',PSTR("Previous value: %d   Changed to: %d"),prefs.satMinimumSignalRequired,resultUInt);
+			        prefs.satMinimumSignalRequired = (byte)resultUInt;
+			        savePrefsIfChanged();
+			    } else {
+			        DebugMsg::msg_P("CM",'I',PSTR("Signal strength transmit threshold must be 0-5. 5 is strongest signal. "));
+			    }
+			}
+		    break;
+	case 4: // settings xxxx xxxx xxxx
+            if(0 == strcmp(args[1],"pinexists")){
+            
+            
+            }
+		    break;
+	default:
+	;
+	}
+
+
+}
+
+
+
+void cmd_settingsHelp(){
 			// Print settings help out
 //	Serial.println(F("  settings debuglevel [0]          0 = no output 9 = lots of output"));
 	Serial.println(F("  settings pinexists [DSR | RI | NA | PWR_EN] [true | false]"));
@@ -389,27 +452,16 @@ void cmdLine_settings(int arg_count, char **args)  {
 	
   DebugMsg::msg_P("CM",'I',PSTR("     settings"));
   DebugMsg::msg_P("CM",'I',PSTR("              idlecheck %d"),prefs.satDesiredSBDSessionInterval); 
-  DebugMsg::msg_P("CM",'I',PSTR("              pinexists")); 
+/*  DebugMsg::msg_P("CM",'I',PSTR("              pinexists")); 
   DebugMsg::msg_P("CM",'I',PSTR("                        DSR %s"),(prefs.pinExistsDSR)?"true":"false");     
   DebugMsg::msg_P("CM",'I',PSTR("                        RI %s"),(prefs.pinExistsRI)?"true":"false"); 
   DebugMsg::msg_P("CM",'I',PSTR("                        NA %s"),(prefs.pinExistsNA)?"true":"false"); 
-  DebugMsg::msg_P("CM",'I',PSTR("                        PWR_EN %s"),(prefs.pinExistsPWR_EN)?"true":"false");
+  DebugMsg::msg_P("CM",'I',PSTR("                        PWR_EN %s"),(prefs.pinExistsPWR_EN)?"true":"false"); */
   DebugMsg::msg_P("CM",'I',PSTR("              i2cmyaddr %x"),prefs.i2cmyaddr);  
   DebugMsg::msg_P("CM",'I',PSTR("              i2cuseraddr %x"),prefs.i2cuseraddr);          
-    
-			break;
-	case 2:
-			break;
-	case 3:
-	
-	
-			break;
-	default:
-	;
+  DebugMsg::msg_P("CM",'I',PSTR("              minsignal %d"),prefs.satMinimumSignalRequired); 
 	}
 
-
-}
 
 void EPsettingsInit() {
 	wdtrst();
@@ -448,9 +500,9 @@ void EPsettingsInit() {
 bool EPsettingsLoadConfig() {
 	EEPROM.readBlock(EPconfigAddress, prefs);
 	while(!EEPROM.isReady());
+    DebugMsg::msg_P("EP", 'D', PSTR("EEPROM prefs version: %s, default firmware prefs version: %s"), prefs.version, EPCONFIG_VERSION);
 	bool result = ((prefs.version[0] == EPCONFIG_VERSION[0]) && (prefs.version[1] == EPCONFIG_VERSION[1] && (prefs.version[2] == EPCONFIG_VERSION[2])));
     if (!result) {
-     DebugMsg::msg_P("EP", 'D', PSTR("EEPROM prefs version: %s, current firmware prefs version: %s"), prefs.version, EPCONFIG_VERSION);
 	}
 	return result;
 }
@@ -459,4 +511,5 @@ bool EPsettingsLoadConfig() {
 //     It will only write bytes to EEPROM when they differ from the RAM bytes.
 void savePrefsIfChanged() {
 	EEPROM.updateBlock(EPconfigAddress, prefs);
+	while(!EEPROM.isReady());
 }
