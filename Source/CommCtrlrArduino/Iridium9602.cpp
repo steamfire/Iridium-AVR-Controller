@@ -246,7 +246,7 @@ void Iridium9602::parseUnsolicitedResponse(char * cmd)
                         _signal = _receivedCmd[8] - '0';
                 } else {
                         /* network available */
-                        if (_receivedCmd[0] == '1')  {
+                        if (_receivedCmd[8] == '1')  {
                                 _networkAvailable = true;
                                 _networkStateChanged = true;
                         } else {
