@@ -226,9 +226,12 @@ void Iridium9602::parseUnsolicitedResponse(char * cmd)
 
                 clearIncomingMsg();
                 wdtrst();
-                expectPrefix(F("OK"), satResponseTimeout);
+                bool sbdixComplete = expectPrefix(F("OK"), satResponseTimeout);
                 wdtrst();
-                _sessionInitiated = false;
+                DebugMsg::msg_P("Sat", 'D', PSTR("OK response detected: %d"),sbdixComplete);
+                       
+                _sessionActive = false;
+                
     
 
                 if (_MOQueued && 
@@ -241,6 +244,7 @@ void Iridium9602::parseUnsolicitedResponse(char * cmd)
                 } else  {
                         _lastSessionResult = -mo_st;
                 }
+                _sessionActive = false;
         } else if (strncmp_P(_receivedCmd, PSTR("SBDRING"), 8) == 0) {
                 //DebugMsg::msg_P("SAT", 'D', PSTR("Match RING"));
                 _bRing = true;
@@ -289,7 +293,7 @@ bool Iridium9602::expectLoop(const void * response,
                 if (to == 0) to = 1; // use 1 ms  ---- FIXME  - this looks like bad code!
 
 #if 0
-                DebugMsg::msg_P("SAT", 'D', PSTR("%s: timeout: %d to: %d st: %d ml: %d"), 
+                DebugMsg::msg_P("SAT", 'D', PSTR("%s: timeout: %lu to: %lu st: %lu ml: %lu"), 
                                 __func__, timeout, to, starttime, millis());
 #endif
                 if (!checkIncomingCRLF(to)) {

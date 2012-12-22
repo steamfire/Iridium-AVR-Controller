@@ -159,7 +159,7 @@ void SatCommMgr::update(void)
                         _satModem.lastSessionTime = millis();
                 }
 				
-#if 1
+#if 0
                 DebugMsg::msg_P("CC", 'D', PSTR("is: %d sa: %d, lst: %lu rretrTime: %lu : %lu millis: %lu"),
                                 initiate_session, 
                                 _satModem.isSessionActive(),
