@@ -567,19 +567,37 @@ int Iridium9602::loadMTMessage(unsigned char * msg, int msg_sz)
         return br;
 }
 
+// This returns true only if NA is 1, and signal is above threshold prefs.satMinimumSignalRequired!!
 bool Iridium9602::isSatAvailable(void)
 {
+
+	bool resultNA;
 /*XXXX */
 #if 1
-        if (digitalRead(pinNA) == HIGH) 
+
+		if(0 < prefs.pinNA){   //if the Network Available pin number is greater than 0, read it
+			if (digitalRead(prefs.pinNA) == HIGH) 
         {
-                return true;
+					resultNA = true;
+			} else {
+					resultNA = false;
         } 
+		} else {  // No NA pin defined, so read from last serial CIEV1,# message
+			resultNA = _networkAvailable;
+		}
+    	
+    	
+    	if((resultNA == true) && (_signal >= prefs.satMinimumSignalRequired)) {
+    			return true;  // Return true only if signal is above threshold!    		
+    	} else {
+    		return false;
+    	}
+    
 #else
-	return true;
+	return true;  // fake NA all the time
 #endif
 
-        return false;
+
 }
 
 void Iridium9602::powerOff(void)
