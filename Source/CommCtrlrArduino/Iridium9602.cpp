@@ -32,11 +32,11 @@ bool Iridium9602::initModem()
 {
         _rcvIdx = 0;
         _bRing = false;
-        _sessionInitiated = false;
+        _sessionActive = false;
         _MOQueued = false;
         _MTQueued = 0;
         _MTMsgLen = 0;
-        _lastSessionTime = 0;
+        lastSessionTime = 0;
         _lastSessionResult = 1;
         modemAlive = false;
         
@@ -206,7 +206,7 @@ void Iridium9602::parseUnsolicitedResponse(char * cmd)
                 //DebugMsg::msg_P("SAT", 'D', PSTR("Match SBDIX"));
                 int mo_st = -1, mt_st, mt_len, mt_q;
                 if (parseSBDIXResponse(_receivedCmd, &mo_st, &mt_st, &mt_len, &mt_q)) {
-                    DebugMsg::msg_P("Sat", 'D', PSTR("SBD Session Complete:"));
+                    DebugMsg::msg_P("Sat", 'D', PSTR("SBD Session Data:"));
                     DebugMsg::msg_P("Sat", 'D', PSTR("  Msg Out Status: %d, Msg Out ID#: %d, Msg In Length: %d, Msgs Waiting @gtwy: %d"),
                                     mo_st, mt_st, mt_len, mt_q);
                     wdtrst();
@@ -729,14 +729,14 @@ bool Iridium9602::initiateSBDSession(unsigned long timeout)
         
 		DebugMsg::msg_P("SAT", 'I',PSTR("Initiating SBD Session..."), _receivedCmd);
 		
-        if (_sessionInitiated) goto out;
+        if (_sessionActive) goto out;
 
         if (_bRing) {
         	ret = sendCommandandExpectPrefix(F("AT+SBDIXA"), F("OK"), timeout);
         } else {
         	ret = sendCommandandExpectPrefix(F("AT+SBDIX"), F("OK"), timeout);
         }
-        _sessionInitiated = true;
+        _sessionActive = true;
         _bRing = false;
 
 out:
@@ -757,9 +757,10 @@ bool Iridium9602::pollUnsolicitedResponse(unsigned long timeout)
                 }
         } while(timeout == 0 || millis() - starttime < timeout);
 
-        if (millis() - _lastSessionTime > satSBDIXResponseLost) {
-                _sessionInitiated = false;
+        if (millis() - lastSessionTime > satSBDIXResponseLost) {
+                _sessionActive = false;
                 _lastSessionResult = 0;
+                //DebugMsg::msg_P("SAT", 'D',PSTR("Lost Track of SBDIX response: %s"), _receivedCmd);                
         }
 
         return false;

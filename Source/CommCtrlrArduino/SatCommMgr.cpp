@@ -14,14 +14,14 @@
 
 extern struct StoreStruct prefs;
 extern unsigned long satForceSBDSessionInterval;
-static unsigned long retry_timeouts[] = {1000L,5000L,11000L,30000L,30000L};
-static int retry_timeouts_sz = sizeof(retry_timeouts) / sizeof(retry_timeouts[0]);
+static unsigned int retry_timeouts[] = {100,500,1100,3000,3000};  //tenths of second for retry delay
+static byte retry_timeouts_sz = sizeof(retry_timeouts) / sizeof(retry_timeouts[0]);
 static unsigned char sbuf[satMessageCharBufferSize];
 
 SatCommMgr::SatCommMgr(Iridium9602& sModem):_satModem(sModem), _last_millis(0)
 {
         _retryTimeIdx = 0;
-        _lastSessionTime = 0;
+        _lastSessionTime = millis();   //Initialize lastSessionTime with current time to prevent immediate SBD
         _lastActivityTime = 0;
         _randomizedRetryTime = 0;
 }
@@ -39,6 +39,7 @@ void SatCommMgr::satCommInit(I2CCommMgr * i2cCommMgr)
         	_i2cCommMgr = i2cCommMgr;
         	wdtrst();
         	randomizeMessageCheckInterval();
+        	_randomizedRetryTime = random(10, retry_timeouts[_retryTimeIdx]*100);  //convert tenths of second to millis 
         	DebugMsg::msg_P("SAT",'I',PSTR("SatModem Init Completed."));
         } else {
         	DebugMsg::msg_P("SAT",'E',PSTR("SatModem Init FAILED."));
@@ -114,16 +115,16 @@ void SatCommMgr::update(void)
                 	
                 		
                         //DebugMsg::msg_P("CC", 'D', PSTR("checking for time out"));
-                        if (millis() - _lastSessionTime > _randomizedRetryTime) 
+                        if (millis() - _satModem.lastSessionTime > _randomizedRetryTime) 
                         {
                         	sigcheck = _satModem.checkSignal();
                         	if (sigcheck >= prefs.satMinimumSignalRequired)
                 			{
-#if 0			
+#if 1			
                                 DebugMsg::msg_P("SC", 'D', PSTR("[%d] = %lu --  %lu ms timeout hit, checkSignal: %d, MinSignal: %d"), 
                                                 _retryTimeIdx,
                                                 _randomizedRetryTime,
-                                                millis() - _lastSessionTime,
+                                                millis() - _satModem.lastSessionTime,
                                                 sigcheck,
                                                 prefs.satMinimumSignalRequired);
 #endif
@@ -136,13 +137,13 @@ void SatCommMgr::update(void)
                                  * time out, it would be from 10-ms to maximum of what's in
                                  * the array.
                                  */
-                                _randomizedRetryTime = random(10, retry_timeouts[_retryTimeIdx]);
-#if 0
-                                DebugMsg::msg_P("CC", 'D', PSTR("New timeout [%d] = %lu"),
+                                _randomizedRetryTime = random(10, retry_timeouts[_retryTimeIdx]*100);  //convert tenths of second to millis 
+#if 1
+                                DebugMsg::msg_P("CC", 'D', PSTR("New retry time delay: [%d] = %lu"),
                                                 _retryTimeIdx, _randomizedRetryTime);
 #endif
                                 /* reset the counter to start from now */
-                                _lastSessionTime = millis();
+                                _satModem.lastSessionTime = millis();
                                 initiate_session = true;
                         	} else 
                         	{
@@ -152,33 +153,35 @@ void SatCommMgr::update(void)
                 }
                 
                 /* check if maximum time between session has passed */
-                if (!initiate_session && ((millis() - _lastSessionTime)  > satForceSBDSessionInterval)) {
-                        DebugMsg::msg_P("CC", 'D', PSTR("force SBD session, none has happened in more than %d seconds"),satForceSBDSessionInterval/1000);
+                if (!initiate_session && ((millis() - _satModem.lastSessionTime)  > satForceSBDSessionInterval*1000UL)) {
+                        DebugMsg::msg_P("CC", 'D', PSTR("force SBD session, none has happened in more than %d seconds"),satForceSBDSessionInterval);
                         initiate_session = true;
-                        _lastSessionTime = millis();
+                        _satModem.lastSessionTime = millis();
                 }
 				
 #if 1
                 DebugMsg::msg_P("CC", 'D', PSTR("is: %d sa: %d, lst: %lu rretrTime: %lu : %lu millis: %lu"),
                                 initiate_session, 
                                 _satModem.isSessionActive(),
-                                _lastSessionTime,
+                                _satModem.lastSessionTime,
                                 _randomizedRetryTime,
-                                (_randomizedRetryTime - (millis() - _lastSessionTime) > 0 ?
-                                 _randomizedRetryTime - (millis() - _lastSessionTime) : 0),
+                                 (millis() - _satModem.lastSessionTime),
                                 millis());
 #endif
 				//FINALLY DO THE SBD SESSION!!
                 if (initiate_session && !_satModem.isSessionActive()) {
                        if (!_satModem.initiateSBDSession(satResponseTimeout)) {
                                /* force the time to now if no response was received before the timeout */
-                               _lastSessionTime = millis();
+                               _satModem.lastSessionTime = millis();
+                                DebugMsg::msg_P("SC", 'D',PSTR("%s: initiateSBDSession timed out after %lu"), __func__, satResponseTimeout);
                        }
                        //If there were no transfer errors, reset retry time to 0
                        if (((_satModem.lastSessionResult() >= 0) && (_satModem.lastSessionResult() <= 4)) && (_satModem.getRecentMTStatus() < 2))
                        {
                        		_retryTimeIdx = 0;
                        		initiate_session = false;
+                       		
+                       		
                        }
                 }
         }

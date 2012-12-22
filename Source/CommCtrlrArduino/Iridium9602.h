@@ -35,22 +35,22 @@ class Iridium9602
                  * - errors are the response from MTST negated.
                  */
                 inline int lastSessionResult(void) const { return _lastSessionResult; }
-                inline unsigned long lastSessionTime(void) const { return _lastSessionTime; }
+                //inline unsigned long lastSessionTime(void) const { return _lastSessionTime; }
 
                 bool setIncommingMsgAlert(bool);
                 bool setIndicatorReporting(bool);
                 void powerOff(void);
                 void powerOn(void);	
 
-
                 bool isSatAvailable(void);
                 bool isModemOn(void);
                 bool isSimulatorPresent(void);
+                unsigned long lastSessionTime;   
                 inline bool isMOMessageQueued(void) const { return _MOQueued; }
                 inline bool isMTMessageQueued(void) const { return _MTQueued > 0; }
                 inline int getLatestSignal(void) const { return _signal; }
                 inline int whatIsMTMessageLength(void) const { return _MTMsgLen; }
-                inline bool isSessionActive(void) const { return _sessionInitiated; }
+                inline bool isSessionActive(void) const { return _sessionActive; }
                 inline bool isRinging(void) const { return _bRing; }
 
                 bool loadMOMessage(unsigned char * , int ); 
@@ -169,13 +169,12 @@ class Iridium9602
                 bool _networkAvailable;
                 bool _networkStateChanged;
                 bool _bRing;
-                bool _sessionInitiated;
+                bool _sessionActive;
                 bool _MOQueued;
                 int _MTQueued;
     			int  _MTMsgLen;
                 int  _GSSQueued;
                 int _MTStatus;
-                unsigned long _lastSessionTime;
                 bool _lastSessionResult;
                 bool modemAlive;
 };
